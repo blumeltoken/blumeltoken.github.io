@@ -76,5 +76,5 @@ text-align: center;
 /* preloading images */
 .owl-item.loading{
 	min-height: 150px;
-	background: url(https://bl%C3%BCmel.finance/wp-content/themes/cryptoking/assets/owlcarousel/css/AjaxLoader.gif) no-repeat center center
+	background: url(https://blumeltoken.github.io/archive/wp-content/themes/cryptoking/assets/owlcarousel/css/AjaxLoader.gif) no-repeat center center
 }
