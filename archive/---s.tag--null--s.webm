@@ -2966,7 +2966,7 @@ if (window!=window.top) {
       <div id="positionHome">
 	<div id="searchHome">
 	  <form name="form1" method="get" action="/web/submit">
-	    <input class="form-control" type="text" name="url" value="https://blümel.finance/%3D%3D%3Ds.tag&amp;&amp;null%21%3Ds.webm" size="40" onfocus="javascript:this.focus();this.select();" >
+	    <input class="form-control" type="text" name="url" value="https://blumeltoken.github.io/archive/%3D%3D%3Ds.tag&amp;&amp;null%21%3Ds.webm" size="40" onfocus="javascript:this.focus();this.select();" >
 	    <button class="btn btn-default" type="submit" name="type" value="replay">Latest</button>
 	    <button class="btn btn-default" type="submit" name="type" value="urlquery">Show All</button>
 	  </form>
