@@ -2,90 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>BLUMEL_AWAKENING_DASHBOARD</title>
+    <title>BLUMEL_COMMAND_CENTER_v3</title>
     <script type="module">
         import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 
-        // CONFIGURATION
-        const ADDR = {
-            BLUMELITY: "0x8Fa8082B32c2Fa1bebdfE5e7B2Ad4cAB7B29AB55",
-            FAUCET: "0x96c5ef6F82Dc0281E09f2A5fE023f2F29CC9e8cB",
-            CLAIM: "0x7d36Ae0Fc020E0EC7EEf18168F64c4604307e11C",
-            V4_ROUTER: "0xa51afafe0263b40edaef0df8781ea9aa03e381a3",
-            V2_ROUTER: "0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24",
-            WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+        const CONFIG = {
+            42161: {
+                name: "ARBITRUM_ONE",
+                BLUMELITY: "0x8Fa8082B32c2Fa1bebdfE5e7B2Ad4cAB7B29AB55",
+                FAUCET: "0x96c5ef6F82Dc0281E09f2A5fE023f2F29CC9e8cB",
+                CLAIM: "0x7d36Ae0Fc020E0EC7EEf18168F64c4604307e11C",
+                V2_ROUTER: "0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24",
+                V4_ROUTER: "0xa51afafe0263b40edaef0df8781ea9aa03e381a3",
+                WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+                TOKEN: "0xE921401D18Ed1EA4d64169D1576c32F9a7439694"
+            },
+            1: {
+                name: "ETHEREUM_MAINNET",
+                BLUMELITY: "0x0000000000000000000000000000000000000000", 
+                FAUCET: "0x0000000000000000000000000000000000000000",
+                CLAIM: "0x436822c83C2F2D61807B82E7b1aA644d9cDdd328",
+                V2_ROUTER: "0x3d7667ce10CCA2e0AB41b56121211bD42a27a667",
+                V4_ROUTER: "0x0000000000000000000000000000000000000000",
+                WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                TOKEN: "0xE921401D18Ed1EA4d64169D1576c32F9a7439694"
+            }
         };
 
         const ABIS = {
             BLUMELITY: [
                 "function claim(uint256 count) public",
+                "function sellV2(uint256 count, uint256 minOut, address router, address WETH) public",
                 "function sellV4(uint256 count, uint256 minOut, address universalRouter, address weth, uint24 fee, int24 tickSpacing) public",
                 "function withdraw() public"
             ],
             FAUCET: ["function faucet() public", "function spreadJoy(address[] investors, address[] others) public"],
-            CLAIM: ["function multiClaim() public"]
+            CLAIM: ["function multiClaim() public", "function claim(uint256 count) public"],
+            TOKEN: ["function balanceOf(address) view returns (uint256)"]
         };
 
-        let signer;
+        let signer, provider, currentChainId;
+
         async function init() {
-            if (!window.ethereum) return log("ERR: WALLET_NOT_FOUND");
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            if (!window.ethereum) return log("ERR: NO_WALLET");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            window.ethereum.on('chainChanged', () => window.location.reload());
+            
+            const network = await provider.getNetwork();
+            currentChainId = Number(network.chainId);
+            const netName = CONFIG[currentChainId] ? CONFIG[currentChainId].name : "UNKNOWN_NET";
+            document.getElementById('netDisplay').innerText = `NODE: ${netName}`;
+            
             signer = await provider.getSigner();
-            log(`SYS: CONNECTED_${await signer.getAddress()}`);
+            log(`SYS: AUTH_GRANTED_${await signer.getAddress()}`);
+            refreshBalances();
         }
 
-        window.exec = async (key, fn, ...args) => {
+        async function refreshBalances() {
+            if (!CONFIG[currentChainId]) return;
             try {
-                const contract = new ethers.Contract(ADDR[key], ABIS[key], signer);
-                log(`EXEC: ${key}.${fn}`);
+                const token = new ethers.Contract(CONFIG[currentChainId].TOKEN, ABIS.TOKEN, provider);
+                const bVal = await token.balanceOf(CONFIG[currentChainId].BLUMELITY);
+                document.getElementById('tokenBal').innerText = `BLUMELITY_STASH: ${ethers.formatUnits(bVal, 18)} BLUMEL`;
+            } catch (e) { console.error(e); }
+        }
+
+        window.exec = async (contractKey, fn, ...args) => {
+            try {
+                const addr = CONFIG[currentChainId][contractKey];
+                const contract = new ethers.Contract(addr, ABIS[contractKey], signer);
+                log(`EXEC: ${contractKey}.${fn}`);
                 const tx = await contract[fn](...args);
                 log(`PENDING: ${tx.hash}`);
                 await tx.wait();
-                log("CONFIRMED_SUCCESS");
+                log("STATUS: CONFIRMED");
+                refreshBalances();
             } catch (e) { log(`ERR: ${e.reason || e.message}`); }
         };
 
         function log(m) {
-            const l = document.getElementById('log');
-            l.innerHTML += `\n> ${m}`;
-            l.scrollTop = l.scrollHeight;
+            const el = document.getElementById('log');
+            el.innerHTML += `\n> ${m}`;
+            el.scrollTop = el.scrollHeight;
         }
+
         window.onload = init;
     </script>
     <style>
-        :root { --green: #00ff41; --bg: #050505; }
-        body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; padding: 2rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
-        .box { border: 1px solid var(--green); padding: 1rem; background: #000; box-shadow: 0 0 10px #00ff4133; }
-        h1, h2 { border-bottom: 1px solid var(--green); text-transform: uppercase; }
-        input { background: #000; border: 1px solid var(--green); color: var(--green); width: 100%; margin: 5px 0; padding: 5px; }
-        button { background: var(--green); color: #000; border: none; padding: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        button:hover { background: #fff; box-shadow: 0 0 15px var(--green); }
-        #log { border: 1px solid #222; background: #000; height: 200px; overflow-y: auto; padding: 10px; font-size: 11px; white-space: pre-wrap; margin-top: 1rem; color: #008f11; }
+        :root { --neon: #00ff41; --bg: #050505; --warn: #ffff00; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; padding: 0; margin: 0; text-transform: uppercase; }
+        
+        /* DISCLAIMER BANNER */
+        .disclaimer { background: var(--warn); color: #000; text-align: center; padding: 10px; font-weight: bold; border-bottom: 2px solid #000; animation: blink 2s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .content { padding: 1.5rem; }
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--neon); margin-bottom: 20px; padding-bottom: 5px; font-size: 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; }
+        .module { border: 1px solid var(--neon); background: #000; padding: 1.2rem; }
+        h2 { font-size: 14px; margin-top: 0; background: #004d1a; padding: 5px; color: #fff; }
+        input { background: #000; border: 1px solid var(--neon); color: var(--neon); width: 100%; margin: 5px 0; padding: 5px; box-sizing: border-box; }
+        button { background: var(--neon); color: #000; border: none; padding: 8px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #fff; box-shadow: 0 0 10px var(--neon); }
+        .danger { background: #ff4141; color: #fff; }
+        #log { border: 1px solid #333; height: 120px; overflow-y: auto; background: #000; padding: 10px; font-size: 11px; margin-top: 20px; white-space: pre; color: var(--neon); }
+        #tokenBal { font-size: 10px; margin-bottom: 10px; display: block; color: #aaa; }
     </style>
 </head>
 <body>
-    <h1>BLUMEL_AWAKENING // ARBITRUM_CMD</h1>
-    <div class="grid">
-        <div class="box">
-            <h2>01_BLUMELITY</h2>
-            <input type="number" id="bClaim" value="120" placeholder="CLAIM_COUNT">
-            <button onclick="exec('BLUMELITY', 'claim', document.getElementById('bClaim').value)">RUN_CLAIM</button>
-            <button onclick="exec('BLUMELITY', 'sellV4', 100, 0, ADDR.V4_ROUTER, ADDR.WETH, 3000, 60)">V4_SWAP_100</button>
-            <button onclick="exec('BLUMELITY', 'withdraw')">SWEEP_ALL</button>
-        </div>
-        <div class="box">
-            <h2>02_FAUCET</h2>
-            <button onclick="exec('FAUCET', 'faucet')">CALL_FAUCET</button>
-            <input type="text" id="spreadList" placeholder="ADDR1,ADDR2 (no spaces)">
-            <button onclick="exec('FAUCET', 'spreadJoy', document.getElementById('spreadList').value.split(','), [])">SPREAD_JOY</button>
-        </div>
-        <div class="box">
-            <h2>03_CLAIM</h2>
-            <button onclick="exec('CLAIM', 'multiClaim')">EXEC_MULTICLAIM_120</button>
-        </div>
+    <div class="disclaimer">
+        !!! STAY TUNED, NOT QUITE YET READY !!! SITE_UNDER_DEVELOPMENT !!!
     </div>
-    <h2>SYSTEM_LOG</h2>
-    <div id="log">INITIALIZING_...</div>
+
+    <div class="content">
+        <div class="header">
+            <span>AWAKENING_MASTER_DASHBOARD_v3</span>
+            <span id="netDisplay">CONNECTING_NODE...</span>
+        </div>
+
+        <span id="tokenBal">SCANNING_STASH...</span>
+
+        <div class="grid">
+            <div class="module">
+                <h2>01_BLUMELITY</h2>
+                <label style="font-size: 10px;">BATCH_CLAIM_SIZE</label>
+                <input type="number" id="bCount" value="120">
+                <button onclick="exec('BLUMELITY', 'claim', document.getElementById('bCount').value)">EXEC_BATCH_CLAIM</button>
+                
+                <button onclick="exec('BLUMELITY', 'sellV2', 100, 1, CONFIG[currentChainId].V2_ROUTER, CONFIG[currentChainId].WETH)">SELL_V2_100</button>
+                <button onclick="exec('BLUMELITY', 'sellV4', 100, 0, CONFIG[currentChainId].V4_ROUTER, CONFIG[currentChainId].WETH, 3000, 60)">SELL_V4_100</button>
+                <button class="danger" onclick="exec('BLUMELITY', 'withdraw')">EMERGENCY_WITHDRAW</button>
+            </div>
+
+            <div class="module">
+                <h2>02_BLUMEL_FAUCET</h2>
+                <button onclick="exec('FAUCET', 'faucet')">REQUEST_FAUCET_DRIP</button>
+                <label style="font-size: 10px;">MASS_DISTRIBUTE (CSV_ADDR)</label>
+                <input type="text" id="joyList" placeholder="0x...,0x...">
+                <button onclick="exec('FAUCET', 'spreadJoy', document.getElementById('joyList').value.split(','), [])">SPREAD_JOY</button>
+            </div>
+
+            <div class="module">
+                <h2>03_BLUEMEL_CLAIM</h2>
+                <button onclick="exec('CLAIM', 'multiClaim')">RUN_MULTICLAIM_120</button>
+                <label style="font-size: 10px;">CUSTOM_COUNT</label>
+                <input type="number" id="mCount" value="10">
+                <button onclick="exec('CLAIM', 'claim', document.getElementById('mCount').value)">MANUAL_CLAIM</button>
+            </div>
+        </div>
+
+        <pre id="log">SYSTEM_BOOT_SEQUENCE_COMPLETE...</pre>
+    </div>
 </body>
 </html>
