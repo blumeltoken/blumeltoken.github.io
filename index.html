@@ -2,59 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLUMEL_COMMAND_CENTER_v4</title>
+    <title>BLUMEL_COMMAND_CENTER</title>
     <link rel="stylesheet" href="./assets/css/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/index.umd.min.js"></script>
     <script type="module" src="./assets/js/main.js"></script>
 </head>
 <body>
-    <div class="disclaimer">
-        !!! STAY TUNED, NOT QUITE YET READY !!! SITE_UNDER_DEVELOPMENT !!!
-    </div>
-
+    <div class="disclaimer">!!! STAY TUNED, NOT QUITE YET READY !!! SITE_UNDER_DEVELOPMENT !!!</div>
     <div class="content">
         <div class="header">
-            <span>AWAKENING_MASTER_DASHBOARD_v4</span>
-            <span id="netDisplay">CONNECTING_NODE...</span>
+            <span>AWAKENING_MASTER_v4</span>
+            <span id="netDisplay">CONNECTING...</span>
         </div>
-
         <span id="tokenBal">SCANNING_STASH...</span>
-
         <div class="grid">
             <div class="module">
                 <h2>01_BLUMELITY</h2>
-                <label>BATCH_CLAIM_SIZE</label>
                 <input type="number" id="bCount" value="120">
-                <button onclick="window.exec('BLUMELITY', 'claim', document.getElementById('bCount').value)">EXEC_BATCH_CLAIM</button>
-                
-                <label>V2_ROUTER_SELL</label>
-                <button onclick="window.exec('BLUMELITY', 'sellV2', 100, 1, window.CONFIG[window.currentChainId].V2_ROUTER, window.CONFIG[window.currentChainId].WETH)">SELL_V2_100</button>
-                
-                <label>V4_SINGLETON_SELL</label>
-                <button onclick="window.exec('BLUMELITY', 'sellV4', 100, 0, window.CONFIG[window.currentChainId].V4_ROUTER, window.CONFIG[window.currentChainId].WETH, 3000, 60)">SELL_V4_100</button>
-                
-                <button class="danger" onclick="window.exec('BLUMELITY', 'withdraw')">EMERGENCY_WITHDRAW</button>
+                <button onclick="window.exec('BLUMELITY', 'claim', document.getElementById('bCount').value)">BATCH_CLAIM</button>
+                <button onclick="window.exec('BLUMELITY', 'sellV2', 100, 1, window.CONFIG[window.currentChainId].V2_ROUTER, window.CONFIG[window.currentChainId].WETH)">SELL_V2</button>
+                <button onclick="window.exec('BLUMELITY', 'sellV4', 100, 0, window.CONFIG[window.currentChainId].V4_ROUTER, window.CONFIG[window.currentChainId].WETH, 3000, 60)">SELL_V4</button>
+                <button class="danger" onclick="window.exec('BLUMELITY', 'withdraw')">SWEEP</button>
             </div>
-
             <div class="module">
-                <h2>02_BLUMEL_FAUCET</h2>
-                <button onclick="window.exec('FAUCET', 'faucet')">REQUEST_FAUCET_DRIP</button>
-                <label>MASS_DISTRIBUTE (CSV_ADDR)</label>
-                <input type="text" id="joyList" placeholder="0x...,0x...">
-                <button onclick="window.exec('FAUCET', 'spreadJoy', document.getElementById('joyList').value.split(','), [])">SPREAD_JOY</button>
+                <h2>02_FAUCET</h2>
+                <button onclick="window.exec('FAUCET', 'faucet')">DRIP</button>
+                <input type="text" id="joyList" placeholder="ADDR1,ADDR2">
+                <button onclick="window.exec('FAUCET', 'spreadJoy', document.getElementById('joyList').value, [])">SPREAD_JOY</button>
             </div>
-
             <div class="module">
-                <h2>03_BLUEMEL_CLAIM</h2>
-                <button onclick="window.exec('CLAIM', 'multiClaim')">RUN_MULTICLAIM_120</button>
-                <label>CUSTOM_COUNT</label>
-                <input type="number" id="mCount" value="10">
-                <button onclick="window.exec('CLAIM', 'claim', document.getElementById('mCount').value)">MANUAL_CLAIM</button>
+                <h2>03_CLAIM</h2>
+                <button onclick="window.exec('CLAIM', 'multiClaim')">MULTI_CLAIM</button>
             </div>
         </div>
-
-        <pre id="log">SYSTEM_BOOT_SEQUENCE_COMPLETE...</pre>
+        <pre id="log">SYSTEM_BOOT_...</pre>
     </div>
 </body>
 </html>
