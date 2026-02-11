@@ -1,5 +1,7 @@
 import { CONFIG, ABIS } from './config.js';
 
+const ethers = window.ethers;
+
 let signer, provider;
 window.currentChainId = null;
 window.CONFIG = CONFIG;
