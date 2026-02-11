@@ -5,35 +5,31 @@ window.currentChainId = null;
 window.CONFIG = CONFIG;
 
 export async function init() {
-    const logElement = document.getElementById('log');
-    const log = (m) => {
-        logElement.innerHTML += `\n> ${m}`;
-        logElement.scrollTop = logElement.scrollHeight;
-    };
-    window.log = log;
-
-    if (!window.ethereum) return log("ERR: NO_WALLET_DETECTED");
+    if (!window.ethereum) return window.log("ERR: NO_WALLET_DETECTED");
 
     try {
-        // Initialize Provider
+        // 1. Setup Provider
         provider = new ethers.BrowserProvider(window.ethereum);
         
-        // Listen for network changes
-        window.ethereum.on('chainChanged', () => window.location.reload());
-        
+        // 2. Immediate Network Check
         const network = await provider.getNetwork();
         window.currentChainId = Number(network.chainId);
         
         const netName = CONFIG[window.currentChainId] ? CONFIG[window.currentChainId].name : "UNKNOWN_NET";
         document.getElementById('netDisplay').innerText = `NODE: ${netName}`;
 
-        // IMPORTANT: Await the signer to enable transactions
+        // 3. Request Accounts & Await Signer
+        await provider.send("eth_requestAccounts", []);
         signer = await provider.getSigner();
         
-        log(`SYS: AUTH_GRANTED_${await signer.getAddress()}`);
+        window.log(`SYS: AUTH_GRANTED_${await signer.getAddress()}`);
+        
+        // Listen for network changes
+        window.ethereum.on('chainChanged', () => window.location.reload());
+        
         refreshBalances();
     } catch (e) {
-        log(`ERR: INIT_FAILED - ${e.message}`);
+        window.log(`ERR: INIT_FAILED - ${e.message}`);
     }
 }
 
@@ -50,22 +46,27 @@ async function refreshBalances() {
 
 window.exec = async (contractKey, fn, ...args) => {
     try {
-        if (!signer) signer = await provider.getSigner();
+        // RE-VALIDATE SIGNER
+        if (!signer) {
+            window.log("WAIT: CONNECTING_SIGNER...");
+            signer = await provider.getSigner();
+        }
         
         const addr = CONFIG[window.currentChainId][contractKey];
+        // THE FIX: Ensure contract is connected to SIGNER, not provider
         const contract = new ethers.Contract(addr, ABIS[contractKey], signer);
         
         window.log(`EXEC: ${contractKey}.${fn}`);
         
-        // Correctly handle array conversion for spreadJoy
+        // Handle array inputs for spreadJoy (splitting CSV string)
         const processedArgs = args.map(arg => 
-            (typeof arg === 'string' && arg.includes(',')) ? arg.split(',') : arg
+            (typeof arg === 'string' && arg.includes(',')) ? arg.split(',').map(s => s.trim()) : arg
         );
 
         const tx = await contract[fn](...processedArgs);
         window.log(`PENDING: ${tx.hash}`);
         await tx.wait();
-        window.log("STATUS: CONFIRMED_OK");
+        window.log("STATUS: SUCCESSFUL");
         refreshBalances();
     } catch (e) { 
         window.log(`ERR: ${e.reason || e.message}`); 
