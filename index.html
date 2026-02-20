@@ -1,41 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>BLUMEL_COMMAND_CENTER</title>
-    <link rel="stylesheet" href="./assets/css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/index.umd.min.js"></script>
-    <script type="module" src="./assets/js/main.js"></script>
-</head>
-<body>
-    <div class="disclaimer">!!! STAY TUNED, NOT QUITE YET READY !!! SITE_UNDER_DEVELOPMENT !!!</div>
-    <div class="content">
-        <div class="header">
-            <span>AWAKENING_MASTER_v4</span>
-            <span id="netDisplay">CONNECTING...</span>
-        </div>
-        <span id="tokenBal">SCANNING_STASH...</span>
-        <div class="grid">
-            <div class="module">
-                <h2>01_BLUMELITY</h2>
-                <input type="number" id="bCount" value="120">
-                <button onclick="window.exec('BLUMELITY', 'claim', document.getElementById('bCount').value)">BATCH_CLAIM</button>
-                <button onclick="window.exec('BLUMELITY', 'sellV2', 100, 1, window.CONFIG[window.currentChainId].V2_ROUTER, window.CONFIG[window.currentChainId].WETH)">SELL_V2</button>
-                <button onclick="window.exec('BLUMELITY', 'sellV4', 100, 0, window.CONFIG[window.currentChainId].V4_ROUTER, window.CONFIG[window.currentChainId].WETH, 3000, 60)">SELL_V4</button>
-                <button class="danger" onclick="window.exec('BLUMELITY', 'withdraw')">SWEEP</button>
-            </div>
-            <div class="module">
-                <h2>02_FAUCET</h2>
-                <button onclick="window.exec('FAUCET', 'faucet')">DRIP</button>
-                <input type="text" id="joyList" placeholder="ADDR1,ADDR2">
-                <button onclick="window.exec('FAUCET', 'spreadJoy', document.getElementById('joyList').value, [])">SPREAD_JOY</button>
-            </div>
-            <div class="module">
-                <h2>03_CLAIM</h2>
-                <button onclick="window.exec('CLAIM', 'multiClaim')">MULTI_CLAIM</button>
-            </div>
-        </div>
-        <pre id="log">SYSTEM_BOOT_...</pre>
-    </div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bl</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
