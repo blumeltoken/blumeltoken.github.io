@@ -7,7 +7,7 @@ export default defineConfig({
   // Replace 'blumeltoken.github.io' with your actual repository name 
   // if it is different from your username. 
   // If your repo is exactly 'blumeltoken.github.io', use '/'
-  base: '/blumeltoken.github.io/', 
+  base: '/', 
   build: {
     outDir: 'dist',
   },
