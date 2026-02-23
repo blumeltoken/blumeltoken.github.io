@@ -1,0 +1,63 @@
+import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+
+export default function TodoView() {
+  const [content, setContent] = useState('LOADING_SYSTEM_FILE...');
+
+  const fetchTodo = () => {
+    fetch(`./todo.md?t=${Date.now()}`)
+      .then(res => {
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          throw new Error("FILE_NOT_FOUND");
+        }
+        return res.text();
+      })
+      .then(text => setContent(text))
+      .catch(err => setContent(`### ERR_LOAD\n${err.message}\n\nEnsure file is in \`/public/todo.md\``));
+  };
+
+  useEffect(() => {
+    fetchTodo();
+  }, []);
+
+  return (
+    <div style={containerStyle}>
+      <div style={headerStyle}>
+        <button onClick={fetchTodo} style={refreshBtnStyle}>REFRESH</button>
+      </div>
+      <div className="markdown-body">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
+    </div>
+  );
+}
+
+/* --- STYLES --- */
+const containerStyle = {
+  padding: '15px',
+  background: '#000',
+  color: 'var(--fg)',
+  fontFamily: 'monospace',
+  height: '100%',
+  overflowY: 'auto',
+  lineHeight: '1.5'
+};
+
+const headerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  color: '#555',
+  borderBottom: '1px solid #222',
+  paddingBottom: '5px',
+  marginBottom: '15px',
+  fontSize: '10px'
+};
+
+const refreshBtnStyle = {
+  background: 'transparent',
+  border: '1px solid #333',
+  color: '#555',
+  fontSize: '9px',
+  cursor: 'pointer'
+};
