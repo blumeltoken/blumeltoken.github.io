@@ -18,3 +18,28 @@ body, html, #root {
 .mosaic-window-toolbar { background: var(--bg) !important; border-bottom: 1px solid var(--border) !important; }
 .mosaic-window-title { color: var(--fg) !important; font-family: monospace; font-size: 10px; opacity: 0.6; }
 .mosaic-tile { margin: 1px; }
+
+/* Markdown Component Overrides */
+.markdown-body h1, .markdown-body h2 {
+  border-bottom: 1px solid #222;
+  color: var(--fg);
+  margin-top: 20px;
+}
+
+.markdown-body ul {
+  padding-left: 20px;
+  list-style-type: square;
+}
+
+.markdown-body code {
+  background: #111;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: #ff79c6; /* Pinkish for visibility */
+}
+
+.markdown-body blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 10px;
+  color: #888;
+}

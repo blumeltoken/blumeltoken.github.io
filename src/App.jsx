@@ -8,12 +8,16 @@ export default function App() {
   const [configText, setConfigText] = useState(JSON.stringify({
     layout: {
       direction: 'row',
-      first: 'terminal',
+      first: {
+	direction: 'column',
+	first: 'terminal',
+	second: 'todo',
+      },
       second: {
         direction: 'column',
         first: 'commands',
         second: 'config',
-      }
+      },
     },
     theme: 'matrix'
   }, null, 2));

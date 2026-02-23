@@ -1,5 +1,5 @@
 import { createConfig, http, WagmiProvider } from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
+import { mainnet, arbitrum, sepolia, arbitrumSepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -21,10 +21,12 @@ const loggingTransport = () => {
 };
 
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains: [mainnet, sepolia, arbitrum, arbitrumSepolia],
   transports: {
     [mainnet.id]: loggingTransport(),
+    [arbitrum.id]: loggingTransport(),
     [sepolia.id]: loggingTransport(),
+    [arbitrumSepolia.id]: loggingTransport(),
   },
 });
 
