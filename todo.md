@@ -1,4 +1,28 @@
+# disclaimer
+
+!!! caution !!!
+
+!!! web3 functionality still in development!!!
+
+!!! do your own research !!!
+
 # blümel token revival
+
+```
+ <-.(`-')                     <-. (`-')   (`-')  _         
+  __( OO)    <-.        .->      \(OO )_  ( OO).-/  <-.    
+ '-'---.\  ,--. )  ,--.(,--.  ,--./  ,-.)(,------.,--. )   
+ | .-. (/  |  (`-')|  | |(`-')|   `.'   | |  .---'|  (`-') 
+ | '-' `.) |  |OO )|  | |(OO )|  |'.'|  |(|  '--. |  |OO ) 
+ | /`'.  |(|  '__ ||  | | |  \|  |   |  | |  .--'(|  '__ | 
+ | '--'  / |     |'\  '-'(_ .'|  |   |  | |  `---.|     |' 
+ `------'  `-----'  `-----'   `--'   `--' `------'`-----'  
+ 
+             ***    A W A K E N I N G     ***
+
+ visit https://blumeltoken.github.io for the latest updates
+ join https://discord.gg/C4UJjv58ya if you want to become active
+```
 
 ## 1. active development
 
