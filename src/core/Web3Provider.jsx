@@ -23,8 +23,10 @@ const loggingTransport = () => {
 export const config = createConfig({
   chains: [mainnet, sepolia, arbitrum, arbitrumSepolia],
   transports: {
-    [mainnet.id]: loggingTransport(),
-    [arbitrum.id]: loggingTransport(),
+    [mainnet.id]: http('https://cloudflare-eth.com'), 
+    [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),
+//    [mainnet.id]: loggingTransport(),
+//    [arbitrum.id]: loggingTransport(),
     [sepolia.id]: loggingTransport(),
     [arbitrumSepolia.id]: loggingTransport(),
   },

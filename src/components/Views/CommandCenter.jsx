@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract, useFeeData } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { parseUnits, formatUnits } from 'viem';
+import { isAddress, getAddress } from 'viem'; // Checksum utilities
 import { ConfigContext } from '../../App';
 import { CONTRACT_MAPPINGS } from '../../core/mappings';
 
 import FunctionInfo from './CommandCenter/FunctionInfo';
-//import FineTuning from './CommandCenter/FineTuning';
 import BoxWrapper from './CommandCenter/BoxWrapper';
 
 export default function CommandCenter() {
@@ -18,16 +17,16 @@ export default function CommandCenter() {
   const chainId = useChainId();
   const { chains, switchChain } = useSwitchChain();
   const { writeContract } = useWriteContract();
-  const { data: feeData, refetch: refreshNet } = useFeeData({ watch: true });
 
-  const [customNonce, setCustomNonce] = useState('');
-  const [priorityFee, setPriorityFee] = useState('');
-  const [gasLimit, setGasLimit] = useState('');
   const [activeTab, setActiveTab] = useState('claim');
   const [activeFunctions, setActiveFunctions] = useState([]);
   const [inputs, setInputs] = useState({});
   const [abiText, setAbiText] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const mainnets = chains.filter(c => !c.testnet);
+  const testnets = chains.filter(c => c.testnet);
 
   useEffect(() => {
     if (chainId && !config.advancedMode) {
@@ -41,14 +40,12 @@ export default function CommandCenter() {
     setActiveTab(key);
     const map = CONTRACT_MAPPINGS[key];
     if (!map) return setActiveFunctions([]);
-
     const functions = (map.functions || []).map(f => ({
       ...f,
       target: f.targets ? f.targets[chainId] : (map[chainId] || ''),
       tokenAddress: CONTRACT_MAPPINGS.token[chainId],
       isView: f.abi?.stateMutability === 'view'
     }));
-    
     setActiveFunctions(functions);
     const initialInputs = {};
     functions.forEach(f => { if (f.defaultInputs) initialInputs[f.name] = f.defaultInputs; });
@@ -59,10 +56,62 @@ export default function CommandCenter() {
     setInputs(prev => ({ ...prev, [fName]: { ...prev[fName], [idx]: val } }));
   };
 
-  const txOptions = {
-    nonce: customNonce ? Number(customNonce) : undefined,
-    gas: gasLimit ? BigInt(gasLimit.split('.')[0].split(',')[0]): undefined,
-    maxPriorityFeePerGas: priorityFee ? parseUnits(priorityFee.replace(',', '.'), 9) : undefined
+  // --- VALIDATION & CHECKSUM LOGIC ---
+  const validateAndParse = (type, val) => {
+    const raw = (val || "").toString().trim();
+    
+    // 1. Handle Arrays (address[] or uint256[])
+    if (type.includes('[]')) {
+      if (raw === "") return { ok: true, data: [], count: 0 };
+      
+      const arrayData = raw.replace(/[\[\]"']/g, '')
+                             .split(',')
+                             .map(s => s.trim())
+                             .filter(s => s !== '');
+      
+      const isAddrArray = type.includes('address');
+      
+      // isAddress() checks both format and checksum if applicable
+      const isValid = arrayData.every(item => 
+        isAddrArray ? isAddress(item) : /^(0x[a-fA-F0-9]+|[0-9]+)$/.test(item)
+      );
+
+      // Convert to checksummed versions if valid
+      const processedData = isValid && isAddrArray ? arrayData.map(a => getAddress(a)) : arrayData;
+      
+      return { 
+        ok: isValid, 
+        data: processedData, 
+        count: arrayData.length,
+        err: !isValid ? (isAddrArray ? "CHECKSUM_ERR" : "NUM_ERR") : null 
+      };
+    }
+
+    if (raw === "") return { ok: false, data: null };
+
+    // 2. Handle Single uint
+    if (type.includes('uint')) {
+      const isHex = raw.startsWith('0x');
+      const isValid = isHex ? /^0x[a-fA-F0-9]+$/.test(raw) : /^[0-9]+$/.test(raw);
+      return { ok: isValid, data: raw, err: !isValid ? "NOT_UINT" : null };
+    }
+
+    // 3. Handle Single Address
+    if (type === 'address') {
+      const isValid = isAddress(raw);
+      return { ok: isValid, data: isValid ? getAddress(raw) : raw, err: !isValid ? "CHECKSUM_ERR" : null };
+    }
+
+    return { ok: true, data: raw };
+  };
+
+  const isRowValid = (f) => {
+    const fInputs = f.abi?.inputs || [];
+    return fInputs.every((input, idx) => validateAndParse(input.type, inputs[f.name]?.[idx]).ok);
+  };
+
+  const prepareArgs = (f) => {
+    return (f.abi?.inputs || []).map((input, idx) => validateAndParse(input.type, inputs[f.name]?.[idx]).data);
   };
 
   return (
@@ -80,7 +129,7 @@ export default function CommandCenter() {
 
       <BoxWrapper title="Links">
         <div style={{ fontSize: '10px' }}>
-          - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>DISCORD_SRV https://discord.gg/C4UJjv58ya</a><br/>
+          - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>DISCORD_SRV</a><br/>
           - <a href="legacy/" target="_blank" style={linkStyle}>blümel.finance legacy version</a>
         </div>
       </BoxWrapper>
@@ -90,7 +139,13 @@ export default function CommandCenter() {
           <span style={{ fontSize: '10px', color: '#fff' }}>{isConnected ? `${address.slice(0,6)}...${address.slice(-4)}` : '[ DISCONNECTED ]'}</span>
           <div style={{ display: 'flex', gap: '4px' }}>
             <select onChange={(e) => switchChain({ chainId: Number(e.target.value) })} value={chainId} style={dropdownStyle}>
-              {chains.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>)}
+              <optgroup label="PRODUCTION">
+                {mainnets.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>)}
+              </optgroup>
+              <optgroup label="────────────────" disabled />
+              <optgroup label="TEST_NETWORKS">
+                {testnets.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>)}
+              </optgroup>
             </select>
             <button onClick={() => isConnected ? disconnect() : connect({ connector: injected() })} style={btnStyle}>
               {isConnected ? 'DISCONNECT' : 'CONNECT'}
@@ -99,7 +154,15 @@ export default function CommandCenter() {
         </div>
       </BoxWrapper>
 
-      {config.advancedMode ? (
+      {!config.advancedMode ? (
+        <BoxWrapper title="Preset_Actions">
+          <select onChange={(e) => loadPreselected(e.target.value)} value={activeTab} style={{ ...dropdownStyle, width: '100%' }}>
+            <option value="claim">CLAIM_GAS_AND_GREET</option>
+            <option value="faucet">FAUCET_REQUEST</option>
+            <option value="community">BUILD_COMMUNITY</option>
+          </select>
+        </BoxWrapper>
+      ) : (
         <BoxWrapper title="ABI_Input">
           <textarea value={abiText} onChange={e => setAbiText(e.target.value)} style={areaStyle} placeholder="PASTE_ABI_JSON" />
           <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
@@ -114,69 +177,71 @@ export default function CommandCenter() {
             }} style={btnStyle}>PARSE</button>
           </div>
         </BoxWrapper>
-      ) : (
-        <BoxWrapper title="Preset_Actions">
-          <select onChange={(e) => loadPreselected(e.target.value)} value={activeTab} style={{ ...dropdownStyle, width: '100%' }}>
-            <option value="claim">CLAIM_GAS_AND_GREET</option>
-            <option value="faucet">FAUCET_REQUEST</option>
-            <option value="community">BUILD_COMMUNITY</option>
-          </select>
-        </BoxWrapper>
       )}
 
       <div style={{ padding: '0 5px' }}>
-        {activeFunctions.map((f, i) => (
-          <div key={i} style={funcRowStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-              <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{f.name.toUpperCase()}</span>
-              {/* Build Community/Multi-param logic: display inputs below, single-param logic: inline */}
-              {f.abi?.inputs?.length === 1 && (
-                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <input style={{ ...paramInputStyle, borderBottom: '1px solid #444' }} value={inputs[f.name]?.[0] || ''} onChange={(e) => handleInputChange(f.name, 0, e.target.value)} />
+        {activeFunctions.map((f, i) => {
+          const rowValid = isRowValid(f);
+          return (
+            <div key={`${f.name}-${i}-${chainId}`} style={funcRowStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                <span style={{ color: 'var(--fg)', fontWeight: 'bold', paddingTop: '4px' }}>{f.name.toUpperCase()}</span>
+                
+                {f.abi?.inputs?.length === 1 && (
+                  <div style={{ flexGrow: 1, position: 'relative' }}>
+                    <input 
+                      style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid #444' : '1px solid #f00', width: '100%' }} 
+                      value={inputs[f.name]?.[0] || ''} 
+                      onChange={(e) => handleInputChange(f.name, 0, e.target.value)} 
+                    />
+                    {!rowValid && inputs[f.name]?.[0] && <span style={errorTextStyle}>{validateAndParse(f.abi.inputs[0].type, inputs[f.name][0]).err}</span>}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <button 
+                    disabled={!rowValid}
+                    onClick={() => writeContract({ address: f.target, abi: [f.abi], functionName: f.abi.name, args: prepareArgs(f) })} 
+                    style={{...btnStyle, opacity: rowValid ? 1 : 0.4}}
+                  >RUN</button>
+                  {f.info && <button onClick={() => setRefreshTrigger(prev => prev + 1)} style={refreshBtnStyle}>REFRESH</button>}
                 </div>
-              )}
-              <button onClick={() => writeContract({ 
-                address: f.target, abi: [f.abi], functionName: f.abi.name, 
-                args: Object.values(inputs[f.name] || {}), ...txOptions 
-              })} style={btnStyle}>RUN</button>
-            </div>
-            
-            <FunctionInfo fObj={f} userAddress={address} />
-
-            {/* Restored Parameters for BUILD_COMMUNITY (Multi-input) */}
-            {f.abi?.inputs?.length > 1 && f.abi.inputs.map((input, idx) => (
-              <div key={idx} style={{ display: 'flex', marginTop: '4px', alignItems: 'center' }}>
-                <span style={{ color: '#555', fontSize: '9px', width: '85px' }}>{input.name}:</span>
-                <input 
-                  style={paramInputStyle} 
-                  value={inputs[f.name]?.[idx] || ''} 
-                  onChange={(e) => handleInputChange(f.name, idx, e.target.value)} 
-                  placeholder={input.type} 
-                />
               </div>
-            ))}
-          </div>
-        ))}
-      </div>
+              
+              <FunctionInfo fObj={f} userAddress={address} refreshTrigger={refreshTrigger} />
 
-	  {/*
-      <FineTuning 
-        nonce={customNonce} setNonce={setCustomNonce}
-        priority={priorityFee} setPriority={setPriorityFee}
-        gas={gasLimit} setGas={setGasLimit}
-        feeData={feeData} refresh={() => refreshNet()}
-        btnStyle={btnStyle} inputStyle={paramInputStyle}
-        chainId={chainId}
-      />
-      */}
+              {f.abi?.inputs?.length > 1 && f.abi.inputs.map((input, idx) => {
+                const check = validateAndParse(input.type, inputs[f.name]?.[idx]);
+                const hasInput = inputs[f.name]?.[idx] !== undefined && inputs[f.name]?.[idx] !== "";
+                return (
+                  <div key={idx} style={{ display: 'flex', marginTop: '8px', alignItems: 'center', position: 'relative' }}>
+                    <span style={{ color: '#555', fontSize: '9px', width: '95px' }}>
+                      {input.name}{check.count !== undefined ? ` [${check.count}]` : ''}:
+                    </span>
+                    <input 
+                      style={{...paramInputStyle, borderBottom: (!hasInput || check.ok) ? '1px solid #222' : '1px solid #f00'}} 
+                      value={inputs[f.name]?.[idx] || ''} 
+                      onChange={(e) => handleInputChange(f.name, idx, e.target.value)} 
+                      placeholder={input.type} 
+                    />
+                    {!check.ok && hasInput && <span style={errorTextStyle}>{check.err}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 const containerStyle = { padding: '10px', background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'monospace', height: '100%', overflowY: 'auto' };
-const btnStyle = { background: 'transparent', color: 'var(--fg)', border: '1px solid var(--fg)', fontSize: '9px', cursor: 'pointer', padding: '2px 6px' };
+const btnStyle = { background: 'transparent', color: 'var(--fg)', border: '1px solid var(--fg)', fontSize: '9px', cursor: 'pointer', padding: '2px 6px', outline: 'none' };
+const refreshBtnStyle = { ...btnStyle, borderColor: '#333', color: '#666' };
 const dropdownStyle = { background: '#000', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '9px', outline: 'none' };
 const funcRowStyle = { borderBottom: '1px solid #111', padding: '12px 0' };
 const areaStyle = { width: '100%', background: '#000', color: '#0f0', border: '1px solid var(--border)', fontSize: '10px', marginTop: '5px', outline: 'none', resize: 'none', fontFamily: 'monospace' };
 const paramInputStyle = { background: 'transparent', border: 'none', borderBottom: '1px solid #222', color: '#fff', fontSize: '10px', outline: 'none' };
 const linkStyle = { color: 'var(--fg)', textDecoration: 'none' };
+const errorTextStyle = { position: 'absolute', right: 0, bottom: '-10px', color: '#f00', fontSize: '7px', fontWeight: 'bold' };

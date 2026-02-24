@@ -5,18 +5,24 @@ export const CONTRACT_MAPPINGS = {
     name: "CLAIM_GAS_AND_GREET",
     functions: [
       { 
-        name: "claim", 
+        name: "claim (preset=1)", 
+        abi: { name: "claim", type: "function", stateMutability: "nonpayable", inputs: [{ name: "count", type: "uint256" }] },
+        targets: { 1: "0xD7AD5D93F39d820325E39df50B6f6C3A9871691f", 42161: "0x8Fa8082B32c2Fa1bebdfE5e7B2Ad4cAB7B29AB55", 11155111: "0x4E71B570911Fbf1B5eE5167e88F8b776da66a239", 421614: "0x9eA44f5E77F2529D372Dbe066e9A29b9758Ea6C0" },
+	defaultInputs: { 0: "1" },
+      },
+      { 
+        name: "claim (preset=80)", 
         abi: { name: "claim", type: "function", stateMutability: "nonpayable", inputs: [{ name: "count", type: "uint256" }] },
         targets: { 1: "0xD7AD5D93F39d820325E39df50B6f6C3A9871691f", 42161: "0x8Fa8082B32c2Fa1bebdfE5e7B2Ad4cAB7B29AB55", 11155111: "0x4E71B570911Fbf1B5eE5167e88F8b776da66a239", 421614: "0x9eA44f5E77F2529D372Dbe066e9A29b9758Ea6C0" },
 	defaultInputs: { 0: "80" },
       },
       { 
-        name: "multiClaim", 
+        name: "multiClaim (120)", 
         abi: { name: "multiClaim", type: "function", stateMutability: "nonpayable", inputs: [] },
         targets: { 1: "0x436822c83C2F2D61807B82E7b1aA644d9cDdd328", 42161: "0x7d36Ae0Fc020E0EC7EEf18168F64c4604307e11C", 11155111: "0xCb0365587ae4cF593F4BcC9a587DD09b91ACd7C2", 421614: "0xa30eeBC2d5d0b654438a0c6b8C8EC5FcAAe68790" },
       },
       { 
-        name: "gruessGernot", 
+        name: "gruessGernot (legacy)", 
         abi: { name: "gruessGernot", type: "function", stateMutability: "nonpayable", inputs: [] },
         targets: { 1: "0xEE0880D40034e0E9781DC8FadD075484532F7f12", 42161: "0xEE0880D40034e0E9781DC8FadD075484532F7f12", 11155111: "0xc29E54D83f1943D2Bb01636b79701Cf0f24E4B28", 421614: "0xb880b579c4AE5BeefEf1Cfd0A2b4d8Bc56DD423E" },
       },/*

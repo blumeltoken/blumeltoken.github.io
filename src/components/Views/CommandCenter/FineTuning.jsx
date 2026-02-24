@@ -13,14 +13,14 @@ export default function FineTuning({ nonce, setNonce, priority, setPriority, gas
   const { data: dripBal } = useBalance({ 
     address: dripAddress,
     token: tokenAddress,
-    query: { enabled: !!dripAddress && !!tokenAddress }
+    query: { enabled: !!dripAddress && !!tokenAddress, retry: 1, refetchInterval: 60000, retryDelay: 30000, }
   });
   
   const { data: totalSupply } = useReadContract({
     address: tokenAddress,
     abi: [{ name: 'totalSupply', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] }],
     functionName: 'totalSupply',
-    query: { enabled: !!tokenAddress }
+    query: { enabled: !!tokenAddress, retry: 1, refetchInterval: 60000, retryDelay: 30000, }
   });
 
   // 2. Input Handler: Replaces commas with dots to prevent parsing crashes
