@@ -1,0 +1,113 @@
+import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+
+export default function NotesView() {
+  const [todoContent, setTodoContent] = useState('LOADING_TODO...');
+  const [readmeContent, setReadmeContent] = useState('LOADING_README...');
+  const [activeTab, setActiveTab] = useState('readme'); // 'todo' or 'readme'
+
+  const fetchFiles = () => {
+    const timestamp = Date.now();
+    
+    // Fetch todo.md
+    fetch(`./todo.md?t=${timestamp}`)
+      .then(res => res.ok ? res.text() : Promise.reject("TODO_NOT_FOUND"))
+      .then(text => setTodoContent(text))
+      .catch(err => setTodoContent(`### ERR_LOAD_TODO\n${err}`));
+
+    // Fetch readme.md
+    fetch(`./readme.md?t=${timestamp}`)
+      .then(res => res.ok ? res.text() : Promise.reject("README_NOT_FOUND"))
+      .then(text => setReadmeContent(text))
+      .catch(err => setReadmeContent(`### ERR_LOAD_README\n${err}`));
+  };
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const currentContent = activeTab === 'todo' ? todoContent : readmeContent;
+
+  return (
+    <div style={containerStyle}>
+      <div style={tabContainerStyle}>
+        <div style={tabsStyle}>
+          <button 
+            onClick={() => setActiveTab('todo')} 
+            style={activeTab === 'todo' ? activeTabStyle : tabBtnStyle}
+          >
+            todo.md
+          </button>
+          <button 
+            onClick={() => setActiveTab('readme')} 
+            style={activeTab === 'readme' ? activeTabStyle : tabBtnStyle}
+          >
+            readme.md
+          </button>
+        </div>
+        <button onClick={fetchFiles} style={refreshBtnStyle}>SYNC_FILES</button>
+      </div>
+
+      <div className="markdown-body" style={markdownBodyStyle}>
+        <ReactMarkdown>{currentContent}</ReactMarkdown>
+      </div>
+    </div>
+  );
+}
+
+/* --- SYSTEM STYLES --- */
+const containerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  background: '#000',
+  color: 'var(--fg)',
+  fontFamily: 'monospace',
+  height: '100%',
+  overflow: 'hidden'
+};
+
+const tabContainerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  borderBottom: '1px solid #222',
+  padding: '5px 10px',
+  background: '#0a0a0a'
+};
+
+const tabsStyle = {
+  display: 'flex',
+  gap: '10px'
+};
+
+const tabBtnStyle = {
+  background: 'transparent',
+  border: 'none',
+  color: '#555',
+  fontSize: '10px',
+  cursor: 'pointer',
+  padding: '5px'
+};
+
+const activeTabStyle = {
+  ...tabBtnStyle,
+  color: 'var(--fg)',
+  borderBottom: '1px solid var(--fg)'
+};
+
+const refreshBtnStyle = {
+  background: 'transparent',
+  border: '1px solid #333',
+  color: '#333',
+  fontSize: '9px',
+  cursor: 'pointer',
+  padding: '2px 6px'
+};
+
+const markdownBodyStyle = {
+  padding: '15px',
+  overflowY: 'auto',
+  flexGrow: 1,
+  lineHeight: '1.5',
+  userSelect: 'text' // Allows copying, but prevents editing
+};

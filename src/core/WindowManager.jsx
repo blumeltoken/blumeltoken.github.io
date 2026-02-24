@@ -8,12 +8,14 @@ import "@blueprintjs/core/lib/css/blueprint.css";
 import TerminalView from '../components/Views/TerminalView';
 import ConfigView from '../components/Views/ConfigView';
 import CommandCenter from '../components/Views/CommandCenter';
+import NotesView from '../components/Views/NotesView';
 import TodoView from '../components/Views/TodoView';
 
 const VIEW_MAP = {
   terminal: <TerminalView />,
   config: <ConfigView />,
   commands: <CommandCenter />,
+  notes: <NotesView />,
   todo: <TodoView />,
 };
 

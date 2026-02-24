@@ -1,13 +1,3 @@
-# disclaimer
-
-!!! caution !!!
-
-!!! web3 functionality still in development!!!
-
-!!! do your own research !!!
-
-# blümel token revival
-
 ```
  <-.(`-')                     <-. (`-')   (`-')  _         
   __( OO)    <-.        .->      \(OO )_  ( OO).-/  <-.    
@@ -21,8 +11,21 @@
              ***    A W A K E N I N G     ***
 
  visit https://blumeltoken.github.io for the latest updates
- join https://discord.gg/C4UJjv58ya if you want to become active
+ join https://discord.gg/C4UJjv58ya to become more active
 ```
+
+# disclaimer
+
+!!! caution !!!
+
+!!! web3 functionality still in development!!!
+
+!!! do your own research !!!
+
+# blümel token revival
+
+- write readme notes on how to use the functionality
+- provide multilingual support
 
 ## 1. active development
 

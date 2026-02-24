@@ -21,7 +21,7 @@ export default function App() {
     advancedMode: false,
     layout: {
       direction: direction,
-      first: "todo",
+      first: "notes",
       second: "commands"
     }
   }, null, 2));
