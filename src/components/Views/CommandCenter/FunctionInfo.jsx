@@ -4,6 +4,7 @@ import { formatUnits } from 'viem';
 
 export default function FunctionInfo({ fObj, userAddress, refreshTrigger }) {
   if (!fObj.info) return null;
+
   const { divisor, cooldown } = fObj.info;
 
   // 1. Fetch Faucet Balance (Manual only)
@@ -49,7 +50,7 @@ export default function FunctionInfo({ fObj, userAddress, refreshTrigger }) {
 
   return (
     <div style={{ fontSize: '9px', color: '#0f0', marginTop: '4px', opacity: 0.8 }}>
-      DRIP_EST: {bal ? formatUnits(bal.value / divisor, bal.decimals) : '...'} {bal?.symbol || ''} | STATUS: {getStatus()}
+      DRIP_EST: {bal && divisor ? formatUnits(bal.value / divisor, bal.decimals) : '...'} {bal?.symbol || ''} | STATUS: {getStatus()}
     </div>
   );
 }

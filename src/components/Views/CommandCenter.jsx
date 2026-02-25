@@ -3,7 +3,7 @@ import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useW
 import { injected } from 'wagmi/connectors';
 import { isAddress, getAddress } from 'viem'; // Checksum utilities
 import { ConfigContext } from '../../App';
-import { CONTRACT_MAPPINGS } from '../../core/mappings';
+import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../../core/mappings';
 
 import FunctionInfo from './CommandCenter/FunctionInfo';
 import BoxWrapper from './CommandCenter/BoxWrapper';
@@ -114,6 +114,9 @@ export default function CommandCenter() {
     return (f.abi?.inputs || []).map((input, idx) => validateAndParse(input.type, inputs[f.name]?.[idx]).data);
   };
 
+  const blockExplorerUrl = BLOCK_EXPLORERS[chainId];
+  const tokenAddress = CONTRACT_MAPPINGS.token[chainId];
+
   return (
     <div style={containerStyle}>
       <BoxWrapper title="Settings">
@@ -130,7 +133,10 @@ export default function CommandCenter() {
       <BoxWrapper title="Links">
         <div style={{ fontSize: '10px' }}>
           - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>https://discord.gg/C4UJjv58ya (DISCORD_SRV)</a><br/>
-          - <a href="legacy/" target="_blank" style={linkStyle}>legacy/ (blümel.finance legacy version)</a>
+          - <a href="legacy/" target="_blank" style={linkStyle}>legacy/ (blümel.finance legacy version)</a><br/>
+	        {blockExplorerUrl && tokenAddress && (
+	          <span>- <a href={`${blockExplorerUrl}/address/${tokenAddress}`} target="_blank" style={linkStyle}>{`${blockExplorerUrl}/address/${tokenAddress}`}(TOKEN)</a><br/></span>
+	        )}
         </div>
       </BoxWrapper>
 
@@ -185,10 +191,20 @@ export default function CommandCenter() {
           return (
             <div key={`${f.name}-${i}-${chainId}`} style={funcRowStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                <span style={{ color: 'var(--fg)', fontWeight: 'bold', paddingTop: '4px' }}>{f.name.toUpperCase()}</span>
+                <div style={{ flexGrow: 1, paddingTop: '4px' }}>
+                  <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{f.name.toUpperCase()}</span>
+                  {f.target && f.target.startsWith('0x') && (
+                    <div style={{ fontSize: '9px', color: '#888', marginTop: '4px', wordBreak: 'break-all' }}>
+                      <a href={`${blockExplorerUrl}/address/${f.target}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                        {f.target}
+                      </a>
+                      {f.abi.name && <span style={{ marginLeft: '8px' }}>({f.abi.name})</span>}
+                    </div>
+                  )}
+                </div>
                 
                 {f.abi?.inputs?.length === 1 && (
-                  <div style={{ flexGrow: 1, position: 'relative' }}>
+                  <div style={{ flexShrink: 0, width: '120px', position: 'relative' }}>
                     <input 
                       style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid #444' : '1px solid #f00', width: '100%' }} 
                       value={inputs[f.name]?.[0] || ''} 
