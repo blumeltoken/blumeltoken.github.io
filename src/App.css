@@ -15,8 +15,9 @@
   --title-bg: #111;
 }
 
-.theme-light {
-  --bg: #eee;
+/* White Theme */
+.theme-white {
+  --bg: #fff;
   --fg: #111;
   --border: #aaa;
   --code-bg: #f0f0f0;
@@ -24,13 +25,24 @@
   --title-bg: #eee;
 }
 
-.theme-solarized {
+/* Solarized Light Theme */
+.theme-solarized-light {
   --bg: #fdf6e3;
   --fg: #657b83;
   --border: #93a1a1;
   --code-bg: #eee8d5;
   --inline-code-bg: #eee8d5;
   --title-bg: #fdf6e3;
+}
+
+/* Solarized Dark Theme */
+.theme-solarized-dark {
+  --bg: #002b36;
+  --fg: #839496;
+  --border: #586e75;
+  --code-bg: #073642;
+  --inline-code-bg: #073642;
+  --title-bg: #002b36;
 }
 
 /* New Dracula Theme */

@@ -67,7 +67,7 @@ export default function CommandCenter() {
     if (type.includes('[]')) {
       if (raw === "") return { ok: true, data: [], count: 0 };
       
-      const arrayData = raw.replace(/[\[\]\"\'']/g, '')
+      const arrayData = raw.replace(/[\[\]\"\'\']/g, '')
                              .split(',')
                              .map(s => s.trim())
                              .filter(s => s !== '');
@@ -125,7 +125,7 @@ export default function CommandCenter() {
       <BoxWrapper title={t('Settings')}>
         <div style={{ display: 'flex', gap: '5px' }}>
           <select value={config.theme} onChange={(e) => updateGlobalConfig('theme', e.target.value)} style={dropdownStyle}>
-            {['matrix', 'dracula', 'solarized', 'light'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
+            {['matrix', 'dracula', 'solarized-dark', 'solarized-light', 'white'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
           </select>
           <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language.split('-')[0]} style={dropdownStyle}>
             <option value="en">LANG: EN</option>

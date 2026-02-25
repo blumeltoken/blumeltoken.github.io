@@ -9,7 +9,7 @@ export default function App() {
   const { t, i18n } = useTranslation();
   const [width, setWidth] = useState(window.innerWidth);
 
-  const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'matrix';
+  const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: light)').matches ? 'white' : 'matrix';
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);

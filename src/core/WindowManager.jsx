@@ -31,7 +31,7 @@ export default function WindowManager() {
     return <div style={{color: 'red', background: '#000', height: '100vh', padding: '20px'}}>{t('JSON_PARSE_ERROR')}: {e.message}</div>;
   }
 
-  const isLightTheme = parsed.theme === 'solarized' || parsed.theme === 'light';
+  const isLightTheme = parsed.theme === 'white' || parsed.theme === 'solarized-light';
   const blueprintTheme = isLightTheme ? 'bp4-light' : 'bp4-dark';
 
   return (
