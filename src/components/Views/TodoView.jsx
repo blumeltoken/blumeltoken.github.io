@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 export default function TodoView() {
+  const { i18n } = useTranslation();
   const [content, setContent] = useState('LOADING_SYSTEM_FILE...');
 
   const fetchTodo = () => {
-    fetch(`./todo.md?t=${Date.now()}`)
+    const lang = i18n.language || 'en';
+    fetch(`./todo.${lang}.md?t=${Date.now()}`)
       .then(res => {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("text/html")) {
@@ -19,7 +22,7 @@ export default function TodoView() {
 
   useEffect(() => {
     fetchTodo();
-  }, []);
+  }, [i18n.language]);
 
   return (
     <div style={containerStyle}>

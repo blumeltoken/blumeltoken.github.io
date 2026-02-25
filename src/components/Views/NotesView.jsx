@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 export default function NotesView() {
+  const { i18n } = useTranslation();
   const [todoContent, setTodoContent] = useState('LOADING_TODO...');
   const [readmeContent, setReadmeContent] = useState('LOADING_README...');
   const [activeTab, setActiveTab] = useState('readme'); // 'todo' or 'readme'
 
   const fetchFiles = () => {
     const timestamp = Date.now();
+    const lang = i18n.language || 'en';
     
     // Fetch todo.md
-    fetch(`./todo.md?t=${timestamp}`)
+    fetch(`./todo.${lang}.md?t=${timestamp}`)
       .then(res => res.ok ? res.text() : Promise.reject("TODO_NOT_FOUND"))
       .then(text => setTodoContent(text))
       .catch(err => setTodoContent(`### ERR_LOAD_TODO\n${err}`));
 
     // Fetch readme.md
-    fetch(`./readme.md?t=${timestamp}`)
+    fetch(`./readme.${lang}.md?t=${timestamp}`)
       .then(res => res.ok ? res.text() : Promise.reject("README_NOT_FOUND"))
       .then(text => setReadmeContent(text))
       .catch(err => setReadmeContent(`### ERR_LOAD_README\n${err}`));
@@ -24,7 +27,7 @@ export default function NotesView() {
 
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [i18n.language]);
 
   const currentContent = activeTab === 'todo' ? todoContent : readmeContent;
 

@@ -4,6 +4,8 @@ import { injected } from 'wagmi/connectors';
 import { isAddress, getAddress } from 'viem'; // Checksum utilities
 import { ConfigContext } from '../../App';
 import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../../core/mappings';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 import FunctionInfo from './CommandCenter/FunctionInfo';
 import BoxWrapper from './CommandCenter/BoxWrapper';
@@ -11,6 +13,7 @@ import BoxWrapper from './CommandCenter/BoxWrapper';
 export default function CommandCenter() {
   const { configText, setConfigText } = useContext(ConfigContext);
   const config = JSON.parse(configText);
+  const { t } = useTranslation();
   
   const { address, isConnected } = useAccount();
   const { disconnect, connect } = { ...useDisconnect(), ...useConnect() };
@@ -64,7 +67,7 @@ export default function CommandCenter() {
     if (type.includes('[]')) {
       if (raw === "") return { ok: true, data: [], count: 0 };
       
-      const arrayData = raw.replace(/[\[\]"']/g, '')
+      const arrayData = raw.replace(/[\[\]\"\'']/g, '')
                              .split(',')
                              .map(s => s.trim())
                              .filter(s => s !== '');
@@ -124,8 +127,12 @@ export default function CommandCenter() {
           <select value={config.theme} onChange={(e) => updateGlobalConfig('theme', e.target.value)} style={dropdownStyle}>
             {['matrix', 'dracula', 'solarized'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
           </select>
+          <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language.split('-')[0]} style={dropdownStyle}>
+            <option value="en">LANG: EN</option>
+            <option value="de">LANG: DE</option>
+          </select>
           <button onClick={() => updateGlobalConfig('advancedMode', !config.advancedMode)} style={btnStyle}>
-            ADVANCED: {config.advancedMode ? 'ON' : 'OFF'}
+            {t('Advanced')}: {config.advancedMode ? 'ON' : 'OFF'}
           </button>
         </div>
       </BoxWrapper>
@@ -133,7 +140,7 @@ export default function CommandCenter() {
       <BoxWrapper title="Links">
         <div style={{ fontSize: '10px' }}>
           - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>https://discord.gg/C4UJjv58ya (DISCORD_SRV)</a><br/>
-          - <a href="legacy/" target="_blank" style={linkStyle}>legacy/ (blümel.finance legacy version)</a><br/>
+          - <a href="https://blumeltoken.github.io/legacy/" target="_blank" style={linkStyle}>https://blumeltoken.github.io/legacy/ (blümel.finance legacy version)</a><br/>
 	        {blockExplorerUrl && tokenAddress && (
 	          <span>- <a href={`${blockExplorerUrl}/address/${tokenAddress}`} target="_blank" style={linkStyle}>{`${blockExplorerUrl}/address/${tokenAddress}`}(TOKEN)</a><br/></span>
 	        )}
