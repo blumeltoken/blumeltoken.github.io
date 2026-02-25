@@ -129,8 +129,8 @@ export default function CommandCenter() {
 
       <BoxWrapper title="Links">
         <div style={{ fontSize: '10px' }}>
-          - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>DISCORD_SRV</a><br/>
-          - <a href="legacy/" target="_blank" style={linkStyle}>blümel.finance legacy version</a>
+          - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>https://discord.gg/C4UJjv58ya (DISCORD_SRV)</a><br/>
+          - <a href="legacy/" target="_blank" style={linkStyle}>legacy/ (blümel.finance legacy version)</a>
         </div>
       </BoxWrapper>
 
