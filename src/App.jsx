@@ -1,23 +1,26 @@
 import React, { useState, useEffect, createContext } from 'react';
 import WindowManager from './core/WindowManager';
+import { useTranslation } from 'react-i18next';
+import './App.css';
 
 export const ConfigContext = createContext();
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [width, setWidth] = useState(window.innerWidth);
+
+  const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'matrix';
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
-    // Cleanup listener on unmount
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Update layout based on width
   const direction = width > 1000 ? "row" : "column";
 
   const [configText, setConfigText] = useState(JSON.stringify({
-    theme: "matrix",
+    theme: getSystemTheme(),
     advancedMode: false,
     layout: {
       direction: direction,
@@ -26,7 +29,6 @@ export default function App() {
     }
   }, null, 2));
 
-  // Sync direction if width changes
   useEffect(() => {
     setConfigText(prev => {
       const current = JSON.parse(prev);
@@ -37,6 +39,10 @@ export default function App() {
       return prev;
     });
   }, [direction]);
+
+  useEffect(() => {
+    document.title = t("app_title");
+  }, [i18n.language, t]);
 
   return (
     <ConfigContext.Provider value={{ configText, setConfigText }}>

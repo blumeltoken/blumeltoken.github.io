@@ -1,24 +1,92 @@
-
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import HttpApi from "i18next-http-backend";
 
 i18n
-  .use(initReactI18next)
   .use(LanguageDetector)
-  .use(HttpApi)
+  .use(initReactI18next)
   .init({
-    supportedLngs: ["en", "de"],
+    debug: true,
     fallbackLng: "en",
-    detection: {
-      order: ["cookie", "htmlTag", "localStorage", "path", "subdomain"],
-      caches: ["cookie"],
+    interpolation: {
+      escapeValue: false,
     },
-    backend: {
-      loadPath: "/locales/{{lng}}/translation.json",
+    resources: {
+      en: {
+        translation: {
+          "app_title": "Blümel Token Control Center",
+          // WindowManager
+          "JSON_PARSE_ERROR": "JSON Parse Error",
+          "NULL_VIEW": "Null View",
+
+          // ConfigView
+          "APPLY_CHANGES": "[ APPLY CHANGES ]",
+
+          // CommandCenter
+          "Advanced": "Advanced",
+          "Settings": "Settings",
+          "Links": "Links",
+          "Wallet": "Wallet",
+          "Disconnected": "[ DISCONNECTED ]",
+          "Production": "PRODUCTION",
+          "Test_Networks": "TEST_NETWORKS",
+          "Disconnect": "DISCONNECT",
+          "Connect": "CONNECT",
+          "Preset_Actions": "Preset Actions",
+          "Claim_Gas_And_Greet": "CLAIM BLUMEL AND GREET",
+          "Faucet_Request": "FAUCET REQUEST",
+          "Build_Community": "BUILD COMMUNITY",
+          "ABI_Input": "ABI Input",
+          "Paste_ABI_JSON": "PASTE ABI JSON",
+          "Parse": "PARSE",
+          "Run": "RUN",
+          "Refresh": "REFRESH",
+
+          // Validation
+          "CHECKSUM_ERR": "INVALID_CHECKSUM_OR_ADDRESS",
+          "NUM_ERR": "INVALID_NUMBER_FORMAT",
+          "NOT_UINT": "INVALID_UINT_FORMAT",
+          "Invalid ABI": "Invalid ABI"
+        },
+      },
+      de: {
+        translation: {
+          "app_title": "Blümel Token Schaltzentrale",
+          // WindowManager
+          "JSON_PARSE_ERROR": "JSON-Parse-Fehler",
+          "NULL_VIEW": "Leere Ansicht",
+
+          // ConfigView
+          "APPLY_CHANGES": "[ ÄNDERUNGEN ÜBERNEHMEN ]",
+
+          // CommandCenter
+          "Advanced": "Erweitert",
+          "Settings": "Einstellungen",
+          "Links": "Links",
+          "Wallet": "Wallet",
+          "Disconnected": "[ GETRENNT ]",
+          "Production": "PRODUKTION",
+          "Test_Networks": "TESTNETZE",
+          "Disconnect": "TRENNEN",
+          "Connect": "VERBINDEN",
+          "Preset_Actions": "Voreingestellte Aktionen",
+          "Claim_Gas_And_Greet": "BLÜMEL ABSTAUBEN UND GRÜSSEN",
+          "Faucet_Request": "FAUCET ANFRAGE",
+          "Build_Community": "COMMUNITY AUFBAUEN",
+          "ABI_Input": "ABI-Eingabe",
+          "Paste_ABI_JSON": "ABI-JSON EINFÜGEN",
+          "Parse": "PARSEN",
+          "Run": "AUSFÜHREN",
+          "Refresh": "AKTUALISIEREN",
+
+          // Validation
+          "CHECKSUM_ERR": "UNGÜLTIGE_PRÜFSUMME_ODER_ADRESSE",
+          "NUM_ERR": "UNGÜLTIGES_ZAHLENFORMAT",
+          "NOT_UINT": "UNGÜLTIGES_UINT_FORMAT",
+          "Invalid ABI": "Ungültiges ABI"
+        },
+      },
     },
-    react: { useSuspense: false },
   });
 
 export default i18n;

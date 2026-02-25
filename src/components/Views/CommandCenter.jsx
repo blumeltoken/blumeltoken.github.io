@@ -86,7 +86,7 @@ export default function CommandCenter() {
         ok: isValid, 
         data: processedData, 
         count: arrayData.length,
-        err: !isValid ? (isAddrArray ? "CHECKSUM_ERR" : "NUM_ERR") : null 
+        err: !isValid ? (isAddrArray ? t("CHECKSUM_ERR") : t("NUM_ERR")) : null 
       };
     }
 
@@ -96,13 +96,13 @@ export default function CommandCenter() {
     if (type.includes('uint')) {
       const isHex = raw.startsWith('0x');
       const isValid = isHex ? /^0x[a-fA-F0-9]+$/.test(raw) : /^[0-9]+$/.test(raw);
-      return { ok: isValid, data: raw, err: !isValid ? "NOT_UINT" : null };
+      return { ok: isValid, data: raw, err: !isValid ? t("NOT_UINT") : null };
     }
 
     // 3. Handle Single Address
     if (type === 'address') {
       const isValid = isAddress(raw);
-      return { ok: isValid, data: isValid ? getAddress(raw) : raw, err: !isValid ? "CHECKSUM_ERR" : null };
+      return { ok: isValid, data: isValid ? getAddress(raw) : raw, err: !isValid ? t("CHECKSUM_ERR") : null };
     }
 
     return { ok: true, data: raw };
@@ -122,10 +122,10 @@ export default function CommandCenter() {
 
   return (
     <div style={containerStyle}>
-      <BoxWrapper title="Settings">
+      <BoxWrapper title={t('Settings')}>
         <div style={{ display: 'flex', gap: '5px' }}>
           <select value={config.theme} onChange={(e) => updateGlobalConfig('theme', e.target.value)} style={dropdownStyle}>
-            {['matrix', 'dracula', 'solarized'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
+            {['matrix', 'dracula', 'solarized', 'light'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
           </select>
           <select onChange={(e) => i18n.changeLanguage(e.target.value)} value={i18n.language.split('-')[0]} style={dropdownStyle}>
             <option value="en">LANG: EN</option>
@@ -137,7 +137,7 @@ export default function CommandCenter() {
         </div>
       </BoxWrapper>
 
-      <BoxWrapper title="Links">
+      <BoxWrapper title={t('Links')}>
         <div style={{ fontSize: '10px' }}>
           - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>https://discord.gg/C4UJjv58ya (DISCORD_SRV)</a><br/>
           - <a href="https://blumeltoken.github.io/legacy/" target="_blank" style={linkStyle}>https://blumeltoken.github.io/legacy/ (blümel.finance legacy version)</a><br/>
@@ -147,37 +147,37 @@ export default function CommandCenter() {
         </div>
       </BoxWrapper>
 
-      <BoxWrapper title="Wallet">
+      <BoxWrapper title={t('Wallet')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '10px', color: '#fff' }}>{isConnected ? `${address.slice(0,6)}...${address.slice(-4)}` : '[ DISCONNECTED ]'}</span>
+          <span style={{ fontSize: '10px', color: 'var(--fg)' }}>{isConnected ? `${address.slice(0,6)}...${address.slice(-4)}` : t('Disconnected')}</span>
           <div style={{ display: 'flex', gap: '4px' }}>
             <select onChange={(e) => switchChain({ chainId: Number(e.target.value) })} value={chainId} style={dropdownStyle}>
-              <optgroup label="PRODUCTION">
+              <optgroup label={t('Production')}>
                 {mainnets.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>)}
               </optgroup>
               <optgroup label="────────────────" disabled />
-              <optgroup label="TEST_NETWORKS">
+              <optgroup label={t('Test_Networks')}>
                 {testnets.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>)}
               </optgroup>
             </select>
             <button onClick={() => isConnected ? disconnect() : connect({ connector: injected() })} style={btnStyle}>
-              {isConnected ? 'DISCONNECT' : 'CONNECT'}
+              {isConnected ? t('Disconnect') : t('Connect')}
             </button>
           </div>
         </div>
       </BoxWrapper>
 
       {!config.advancedMode ? (
-        <BoxWrapper title="Preset_Actions">
+        <BoxWrapper title={t('Preset_Actions')}>
           <select onChange={(e) => loadPreselected(e.target.value)} value={activeTab} style={{ ...dropdownStyle, width: '100%' }}>
-            <option value="claim">CLAIM_GAS_AND_GREET</option>
-            <option value="faucet">FAUCET_REQUEST</option>
-            <option value="community">BUILD_COMMUNITY</option>
+            <option value="claim">{t('Claim_Gas_And_Greet')}</option>
+            <option value="faucet">{t('Faucet_Request')}</option>
+            <option value="community">{t('Build_Community')}</option>
           </select>
         </BoxWrapper>
       ) : (
-        <BoxWrapper title="ABI_Input">
-          <textarea value={abiText} onChange={e => setAbiText(e.target.value)} style={areaStyle} placeholder="PASTE_ABI_JSON" />
+        <BoxWrapper title={t('ABI_Input')}>
+          <textarea value={abiText} onChange={e => setAbiText(e.target.value)} style={areaStyle} placeholder={t('Paste_ABI_JSON')} />
           <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
             <input value={targetAddress} onChange={e => setTargetAddress(e.target.value)} style={{ ...areaStyle, height: '22px', marginTop: 0, flexGrow: 1 }} placeholder="0x..." />
             <button onClick={() => {
@@ -186,8 +186,8 @@ export default function CommandCenter() {
                 setActiveFunctions(parsed.filter(f => f.type === 'function').map(a => ({ 
                   name: a.name, abi: a, target: targetAddress, isView: a.stateMutability === 'view'
                 })));
-              } catch(e) { alert("Invalid ABI"); }
-            }} style={btnStyle}>PARSE</button>
+              } catch(e) { alert(t("Invalid ABI")); }
+            }} style={btnStyle}>{t('Parse')}</button>
           </div>
         </BoxWrapper>
       )}
@@ -213,7 +213,7 @@ export default function CommandCenter() {
                 {f.abi?.inputs?.length === 1 && (
                   <div style={{ flexShrink: 0, width: '120px', position: 'relative' }}>
                     <input 
-                      style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid #444' : '1px solid #f00', width: '100%' }} 
+                      style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid var(--border)' : '1px solid #f00', width: '100%' }} 
                       value={inputs[f.name]?.[0] || ''} 
                       onChange={(e) => handleInputChange(f.name, 0, e.target.value)} 
                     />
@@ -226,8 +226,8 @@ export default function CommandCenter() {
                     disabled={!rowValid}
                     onClick={() => writeContract({ address: f.target, abi: [f.abi], functionName: f.abi.name, args: prepareArgs(f) })} 
                     style={{...btnStyle, opacity: rowValid ? 1 : 0.4}}
-                  >RUN</button>
-                  {f.info && <button onClick={() => setRefreshTrigger(prev => prev + 1)} style={refreshBtnStyle}>REFRESH</button>}
+                  >{t('Run')}</button>
+                  {f.info && <button onClick={() => setRefreshTrigger(prev => prev + 1)} style={refreshBtnStyle}>{t('Refresh')}</button>}
                 </div>
               </div>
               
@@ -242,7 +242,7 @@ export default function CommandCenter() {
                       {input.name}{check.count !== undefined ? ` [${check.count}]` : ''}:
                     </span>
                     <input 
-                      style={{...paramInputStyle, borderBottom: (!hasInput || check.ok) ? '1px solid #222' : '1px solid #f00'}} 
+                      style={{...paramInputStyle, borderBottom: (!hasInput || check.ok) ? '1px solid var(--border)' : '1px solid #f00'}} 
                       value={inputs[f.name]?.[idx] || ''} 
                       onChange={(e) => handleInputChange(f.name, idx, e.target.value)} 
                       placeholder={input.type} 
@@ -261,10 +261,10 @@ export default function CommandCenter() {
 
 const containerStyle = { padding: '10px', background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'monospace', height: '100%', overflowY: 'auto' };
 const btnStyle = { background: 'transparent', color: 'var(--fg)', border: '1px solid var(--fg)', fontSize: '9px', cursor: 'pointer', padding: '2px 6px', outline: 'none' };
-const refreshBtnStyle = { ...btnStyle, borderColor: '#333', color: '#666' };
-const dropdownStyle = { background: '#000', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '9px', outline: 'none' };
-const funcRowStyle = { borderBottom: '1px solid #111', padding: '12px 0' };
-const areaStyle = { width: '100%', background: '#000', color: '#0f0', border: '1px solid var(--border)', fontSize: '10px', marginTop: '5px', outline: 'none', resize: 'none', fontFamily: 'monospace' };
-const paramInputStyle = { background: 'transparent', border: 'none', borderBottom: '1px solid #222', color: '#fff', fontSize: '10px', outline: 'none' };
+const refreshBtnStyle = { ...btnStyle, borderColor: 'var(--border)', color: '#666' };
+const dropdownStyle = { background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '9px', outline: 'none' };
+const funcRowStyle = { borderBottom: '1px solid var(--border)', padding: '12px 0' };
+const areaStyle = { width: '100%', background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '10px', marginTop: '5px', outline: 'none', resize: 'none', fontFamily: 'monospace' };
+const paramInputStyle = { background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--fg)', fontSize: '10px', outline: 'none' };
 const linkStyle = { color: 'var(--fg)', textDecoration: 'none' };
 const errorTextStyle = { position: 'absolute', right: 0, bottom: '-10px', color: '#f00', fontSize: '7px', fontWeight: 'bold' };

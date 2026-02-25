@@ -39,7 +39,7 @@ export default function TodoView() {
 /* --- STYLES --- */
 const containerStyle = {
   padding: '15px',
-  background: '#000',
+  background: 'var(--bg)',
   color: 'var(--fg)',
   fontFamily: 'monospace',
   height: '100%',
@@ -50,8 +50,8 @@ const containerStyle = {
 const headerStyle = {
   display: 'flex',
   justifyContent: 'space-between',
-  color: '#555',
-  borderBottom: '1px solid #222',
+  color: 'var(--fg)',
+  borderBottom: '1px solid var(--border)',
   paddingBottom: '5px',
   marginBottom: '15px',
   fontSize: '10px'
@@ -59,8 +59,8 @@ const headerStyle = {
 
 const refreshBtnStyle = {
   background: 'transparent',
-  border: '1px solid #333',
-  color: '#555',
+  border: '1px solid var(--border)',
+  color: 'var(--fg)',
   fontSize: '9px',
   cursor: 'pointer'
 };

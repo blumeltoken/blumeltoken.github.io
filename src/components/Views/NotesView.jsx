@@ -62,7 +62,7 @@ export default function NotesView() {
 const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
-  background: '#000',
+  background: 'var(--bg)',
   color: 'var(--fg)',
   fontFamily: 'monospace',
   height: '100%',
@@ -73,9 +73,8 @@ const tabContainerStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  borderBottom: '1px solid #222',
-  padding: '5px 10px',
-  background: '#0a0a0a'
+  borderBottom: '1px solid var(--border)',
+  padding: '5px 10px'
 };
 
 const tabsStyle = {
@@ -86,7 +85,7 @@ const tabsStyle = {
 const tabBtnStyle = {
   background: 'transparent',
   border: 'none',
-  color: '#555',
+  color: 'var(--border)',
   fontSize: '10px',
   cursor: 'pointer',
   padding: '5px'
@@ -100,8 +99,8 @@ const activeTabStyle = {
 
 const refreshBtnStyle = {
   background: 'transparent',
-  border: '1px solid #333',
-  color: '#333',
+  border: '1px solid var(--border)',
+  color: 'var(--fg)',
   fontSize: '9px',
   cursor: 'pointer',
   padding: '2px 6px'

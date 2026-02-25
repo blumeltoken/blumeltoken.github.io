@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { Mosaic, MosaicWindow } from 'react-mosaic-component';
+import { useTranslation } from 'react-i18next';
 import { ConfigContext } from '../App';
 
 import "react-mosaic-component/react-mosaic-component.css";
@@ -21,20 +22,25 @@ const VIEW_MAP = {
 
 export default function WindowManager() {
   const { configText } = useContext(ConfigContext);
+  const { t } = useTranslation();
   
   let parsed;
   try {
     parsed = JSON.parse(configText);
   } catch (e) {
-    return <div style={{color: 'red', background: '#000', height: '100vh', padding: '20px'}}>JSON_PARSE_ERROR: {e.message}</div>;
+    return <div style={{color: 'red', background: '#000', height: '100vh', padding: '20px'}}>{t('JSON_PARSE_ERROR')}: {e.message}</div>;
   }
+
+  const isLightTheme = parsed.theme === 'solarized' || parsed.theme === 'light';
+  const blueprintTheme = isLightTheme ? 'bp4-light' : 'bp4-dark';
 
   return (
     <div className={`theme-${parsed.theme}`} style={{ width: '100vw', height: '100vh', background: 'var(--bg)' }}>
       <Mosaic
+        className={blueprintTheme}
         renderTile={(id, path) => (
-          <MosaicWindow path={path} title={id.toUpperCase()}>
-            {VIEW_MAP[id] || <div>NULL_VIEW</div>}
+          <MosaicWindow path={path} title={id.toUpperCase()} toolbarControls={[]}>
+            {VIEW_MAP[id] || <div>{t('NULL_VIEW')}</div>}
           </MosaicWindow>
         )}
         value={parsed.layout}
