@@ -33,11 +33,7 @@
 - claim, faucet, sell, roundup
 
 ### b. integration on website pending
-- claim
-- faucet
-- sell
-- original claim
-- roundup functionality
+- sell / buy
 
 ## 2. community question marks
 - wrapper
