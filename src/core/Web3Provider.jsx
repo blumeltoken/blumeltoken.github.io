@@ -4,31 +4,29 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
-const loggingTransport = () => {
-  const base = http();
+const loggingTransport = (transport) => {
   return (config) => {
-    const transport = base(config);
+    const baseTransport = transport(config);
     return {
-      ...transport,
+      ...baseTransport,
       request: async (args) => {
         if (window.term) {
           window.term.writeln(`\x1b[34m[RPC_REQ]\x1b[0m ${args.method}`);
         }
-        return await transport.request(args);
+        return await baseTransport.request(args);
       }
     };
   };
 };
 
+
 export const config = createConfig({
   chains: [mainnet, sepolia, arbitrum, arbitrumSepolia],
   transports: {
-    [mainnet.id]: http('https://cloudflare-eth.com'), 
+    [mainnet.id]: loggingTransport(http('https://mainnet.infura.io/v3/VITE_INFURA_ID')), 
     [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),
-//    [mainnet.id]: loggingTransport(),
-//    [arbitrum.id]: loggingTransport(),
-    [sepolia.id]: loggingTransport(),
-    [arbitrumSepolia.id]: loggingTransport(),
+    [sepolia.id]: loggingTransport(http()),
+    [arbitrumSepolia.id]: loggingTransport(http()),
   },
 });
 

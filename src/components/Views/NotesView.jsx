@@ -10,7 +10,7 @@ export default function NotesView() {
 
   const fetchFiles = () => {
     const timestamp = Date.now();
-    const lang = i18n.language || 'en';
+    const lang = (i18n.language || 'en').split('-')[0];
     
     // Fetch todo.md
     fetch(`./todo.${lang}.md?t=${timestamp}`)
@@ -26,8 +26,11 @@ export default function NotesView() {
   };
 
   useEffect(() => {
-    fetchFiles();
-  }, [i18n.language]);
+    if (i18n.isInitialized) {
+      fetchFiles();
+    }
+  }, [i18n.isInitialized, i18n.language]);
+
 
   const currentContent = activeTab === 'todo' ? todoContent : readmeContent;
 
