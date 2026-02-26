@@ -8,7 +8,7 @@
  | '--'  / |     |'\  '-'(_ .'|  |   |  | |  `---.|     |'
  `------'  `-----'  `-----'   `--'   `--' `------'`-----'
 
-             ***    E R L A C H U N G     ***
+             ***    P R O P A G A N D A     ***
 
  sag der Zukunft auf https://blumeltoken.github.io Grüß Gernot
  und tritt dem GERNODLer-Club auf https://discord.gg/C4UJjv58ya bei

@@ -8,7 +8,10 @@
  | '--'  / |     |'\  '-'(_ .'|  |   |  | |  `---.|     |'
  `------'  `-----'  `-----'   `--'   `--' `------'`-----'
 
-             ***    A W A K E N I N G     ***
+             ***    P R O T O C O L     ***
+
+ visit https://blumeltoken.github.io for the latest updates
+ join https://discord.gg/C4UJjv58ya to get more involved
 ```
 
 # Blümel Token Revival: Roadmap
