@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useContext, useCallback, memo } from 'react';
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract, useBalance, useReadContract } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { isAddress, getAddress, formatUnits } from 'viem';
+import { isAddress, getAddress, formatUnits, pad, isHex, toHex } from 'viem';
 import { ConfigContext } from '../App';
 import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../core/mappings';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import BoxWrapper from './CommandCenter/BoxWrapper';
 import AddressDisplay from '../components/AddressDisplay';
+
+const CREATE2_FACTORY_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
+const CREATE2_FACTORY_ABI = [{ "inputs": [ { "internalType": "bytes32", "name": "salt", "type": "bytes32" }, { "internalType": "bytes", "name": "bytecode", "type": "bytes" } ], "name": "deploy", "outputs": [ { "internalType": "address payable", "name": "addr", "type": "address" } ], "stateMutability": "payable", "type": "function" }];
 
 const FunctionRow = memo(({ f, i, zaehler, inputs, handleInputChange, isRowValid, prepareArgs, writeContract, t, blockExplorerUrl, handlePresetClick, address, validateAndParse }) => {
   const { cooldown = 0, divisor = 1n, type, calc, presets, read, noFormat } = f.info || {};
@@ -166,6 +169,8 @@ export default function CommandCenter() {
   const [inputs, setInputs] = useState({});
   const [abiText, setAbiText] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
+  const [bytecode, setBytecode] = useState('');
+  const [salt, setSalt] = useState('');
 
   const mainnets = chains.filter(c => !c.testnet);
   const testnets = chains.filter(c => c.testnet);
@@ -187,11 +192,34 @@ export default function CommandCenter() {
     setInputs(prev => ({ ...prev, [fName]: { ...prev[fName], ...newInputs } }));
   }, [zaehler]);
 
+  const handleDeploy = () => {
+    if (!isHex(bytecode) || bytecode.length <= 2) {
+      alert('Invalid bytecode. It must be a valid hex string starting with 0x.');
+      return;
+    }
+
+    if (salt) { // CREATE2
+        const saltHex = isHex(salt) ? salt : toHex(salt);
+        const saltBytes32 = pad(saltHex, { size: 32, dir: 'right' });
+        writeContract({
+            address: CREATE2_FACTORY_ADDRESS,
+            abi: CREATE2_FACTORY_ABI,
+            functionName: 'deploy',
+            args: [saltBytes32, bytecode]
+        });
+    } else { // CREATE
+        writeContract({
+            abi: [],
+            bytecode: bytecode,
+        });
+    }
+  };
+
   const validateAndParse = useCallback((type, val) => {
     const raw = (val || "").toString().trim();
     if (type.includes('[]')) {
       if (raw === "") return { ok: true, data: [], count: 0 };
-      const arrayData = raw.replace(/[\[\]\"\'\']/g, '').split(',').map(s => s.trim()).filter(s => s !== '');
+      const arrayData = raw.replace(/[\[\]\"'\']/g, '').split(',').map(s => s.trim()).filter(s => s !== '');
       const isAddrArray = type.includes('address');
       const isValid = arrayData.every(item => isAddrArray ? isAddress(item) : /^(0x[a-fA-F0-9]+|[0-9]+)$/.test(item));
       const processedData = isValid && isAddrArray ? arrayData.map(a => getAddress(a)) : arrayData;
@@ -302,20 +330,29 @@ export default function CommandCenter() {
             </select>
           </BoxWrapper>
         ) : (
-          <BoxWrapper title={t('ABI_Input')}>
-            <textarea value={abiText} onChange={e => setAbiText(e.target.value)} style={areaStyle} placeholder={t('Paste_ABI_JSON')} />
-            <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-              <input value={targetAddress} onChange={e => setTargetAddress(e.target.value)} style={{ ...areaStyle, height: '22px', marginTop: 0, flexGrow: 1 }} placeholder="0x..." />
-              <button onClick={() => {
-                try {
-                  const parsed = JSON.parse(abiText);
-                  setActiveFunctions(parsed.filter(f => f.type === 'function').map(a => ({ 
-                    name: a.name, abi: a, target: targetAddress, isView: a.stateMutability === 'view'
-                  })));
-                } catch(e) { alert(t("Invalid ABI")); }
-              }} style={btnStyle}>{t('Parse')}</button>
-            </div>
-          </BoxWrapper>
+          <>
+            <BoxWrapper title={"Deployer"}>
+              <textarea value={bytecode} onChange={e => setBytecode(e.target.value)} style={areaStyle} placeholder={'Paste Bytecode'} />
+              <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                <input value={salt} onChange={e => setSalt(e.target.value)} style={{ ...areaStyle, height: '22px', marginTop: 0, flexGrow: 1 }} placeholder="0x... (salt, optional for CREATE2)" />
+                <button onClick={handleDeploy} style={btnStyle}>{'Deploy'}</button>
+              </div>
+            </BoxWrapper>
+            <BoxWrapper title={t('ABI_Input')}>
+              <textarea value={abiText} onChange={e => setAbiText(e.target.value)} style={areaStyle} placeholder={t('Paste_ABI_JSON')} />
+              <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                <input value={targetAddress} onChange={e => setTargetAddress(e.target.value)} style={{ ...areaStyle, height: '22px', marginTop: 0, flexGrow: 1 }} placeholder="0x..." />
+                <button onClick={() => {
+                  try {
+                    const parsed = JSON.parse(abiText);
+                    setActiveFunctions(parsed.filter(f => f.type === 'function').map(a => ({ 
+                      name: a.name, abi: a, target: targetAddress, isView: a.stateMutability === 'view'
+                    })));
+                  } catch(e) { alert(t("Invalid ABI")); }
+                }} style={btnStyle}>{t('Parse')}</button>
+              </div>
+            </BoxWrapper>
+          </>
         )}
 
         <div style={{ padding: '0 5px' }}>
