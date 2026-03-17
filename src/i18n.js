@@ -47,6 +47,8 @@ i18n
           "Parse": "PARSE",
           "Run": "RUN",
           "Refresh": "REFRESH",
+          "Claimed": "CLAIMED",
+          "Already_Received": "ALREADY RECEIVED",
 
           // Validation
           "CHECKSUM_ERR": "INVALID_CHECKSUM_OR_ADDRESS",
@@ -90,6 +92,8 @@ i18n
           "Parse": "PARSEN",
           "Run": "AUSFÜHREN",
           "Refresh": "AKTUALISIEREN",
+          "Claimed": "BEANSPRUCHT",
+          "Already_Received": "BEREITS ERHALTEN",
 
           // Validation
           "CHECKSUM_ERR": "UNGÜLTIGE_PRÜFSUMME_ODER_ADRESSE",

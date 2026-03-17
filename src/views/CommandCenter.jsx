@@ -175,6 +175,7 @@ export default function CommandCenter() {
   function FunctionRow({ f, i }) {
     const { cooldown = 0, divisor = 1n, type } = f.info || {};
     const isFaucet = type === 'faucet';
+    const isLegacy = type === 'legacy';
 
     const { data: lastClaimTime } = useReadContract({
         address: f.target,
@@ -187,13 +188,30 @@ export default function CommandCenter() {
         }
     });
 
+    const { data: alreadyReceived } = useReadContract({
+        address: f.target,
+        abi: [{ name: 'alreadyReceived', type: 'function', stateMutability: 'view', inputs: [{type: 'address'}], outputs: [{type: 'bool'}] }],
+        functionName: 'alreadyReceived',
+        args: [address],
+        query: {
+            enabled: isLegacy && !!address && f.target.startsWith('0x'),
+            refetchInterval: 5000,
+        }
+    });
+
     const { data: bal } = useBalance({
-        address: address,
-        token: f.target,
-        query: { enabled: isFaucet && !!address && f.target.startsWith('0x') }
+        address: f.target,
+        token: f.tokenAddress,
+        query: { 
+            enabled: isFaucet && !!f.target && f.target.startsWith('0x') && !!f.tokenAddress, 
+            refetchInterval: 5000 
+        }
     });
 
     const getStatus = () => {
+        if (isLegacy && alreadyReceived) {
+            return { isWaiting: true, text: t('Already_Received') };
+        }
         if (!isFaucet || !cooldown || cooldown === 0 || !lastClaimTime || lastClaimTime === 0n) {
             return { isWaiting: false, text: null };
         }
@@ -214,6 +232,7 @@ export default function CommandCenter() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
                 <div style={{ flexGrow: 1, paddingTop: '4px' }}>
                     <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{f.name.toUpperCase()}</span>
+                    {isLegacy && alreadyReceived && <span style={{ color: 'var(--fg)', fontSize: '9px', marginLeft: '8px' }}>({t('Claimed')})</span>}
                     {f.target && f.target.startsWith('0x') && (
                         <div style={{ fontSize: '9px', color: '#888', marginTop: '4px', wordBreak: 'break-all' }}>
                             <AddressDisplay address={f.target} blockExplorerUrl={blockExplorerUrl} />
@@ -248,7 +267,7 @@ export default function CommandCenter() {
                 {isFaucet && bal && divisor > 0n && (
                     <span>DRIP_EST: {formatUnits(bal.value / divisor, bal.decimals)} {bal.symbol}</span>
                 )}
-                {status.isWaiting && (
+                {status.isWaiting && !isLegacy && (
                     <span> | STATUS: {status.text}</span>
                 )}
             </div>

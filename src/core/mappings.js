@@ -32,6 +32,7 @@ export const CONTRACT_MAPPINGS = {
         name: "gruessGernot (legacy)", 
         abi: { name: "gruessGernot", type: "function", stateMutability: "nonpayable", inputs: [] },
         targets: { 1: "0xEE0880D40034e0E9781DC8FadD075484532F7f12", 42161: "0xEE0880D40034e0E9781DC8FadD075484532F7f12", 11155111: "0xe16f903e365479D1dD2B729D2de046Fe39863A4B", 421614: "0xe16f903e365479D1dD2B729D2de046Fe39863A4B" },
+        info: { type: 'legacy' },
       },/*
       { 
         name: "accumulate", 
