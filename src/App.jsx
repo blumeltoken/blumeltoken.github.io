@@ -19,7 +19,7 @@ export default function App() {
 
   const direction = width > 1000 ? "row" : "column";
 
-  const [configText, setConfigText] = useState(JSON.stringify({
+  const [config, setConfig] = useState({
     theme: getSystemTheme(),
     advancedMode: false,
     layout: {
@@ -27,14 +27,18 @@ export default function App() {
       first: "notes",
       second: "commands"
     }
-  }, null, 2));
+  });
 
   useEffect(() => {
-    setConfigText(prev => {
-      const current = JSON.parse(prev);
-      if (current.layout.direction !== direction) {
-        current.layout.direction = direction;
-        return JSON.stringify(current, null, 2);
+    setConfig(prev => {
+      if (prev.layout.direction !== direction) {
+        return {
+          ...prev,
+          layout: {
+            ...prev.layout,
+            direction: direction
+          }
+        };
       }
       return prev;
     });
@@ -45,7 +49,7 @@ export default function App() {
   }, [i18n.language, t]);
 
   return (
-    <ConfigContext.Provider value={{ configText, setConfigText }}>
+    <ConfigContext.Provider value={{ config, setConfig }}>
       <WindowManager />
     </ConfigContext.Provider>
   );

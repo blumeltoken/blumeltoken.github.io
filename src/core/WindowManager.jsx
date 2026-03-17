@@ -6,36 +6,23 @@ import { ConfigContext } from '../App';
 import "react-mosaic-component/react-mosaic-component.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
-import TerminalView from '../components/Views/TerminalView';
-import ConfigView from '../components/Views/ConfigView';
-import CommandCenter from '../components/Views/CommandCenter';
-import NotesView from '../components/Views/NotesView';
-import TodoView from '../components/Views/TodoView';
+import CommandCenter from '../views/CommandCenter';
+import NotesView from '../views/NotesView';
 
 const VIEW_MAP = {
-  terminal: <TerminalView />,
-  config: <ConfigView />,
   commands: <CommandCenter />,
   notes: <NotesView />,
-  todo: <TodoView />,
 };
 
 export default function WindowManager() {
-  const { configText } = useContext(ConfigContext);
+  const { config } = useContext(ConfigContext);
   const { t } = useTranslation();
-  
-  let parsed;
-  try {
-    parsed = JSON.parse(configText);
-  } catch (e) {
-    return <div style={{color: 'red', background: '#000', height: '100vh', padding: '20px'}}>{t('JSON_PARSE_ERROR')}: {e.message}</div>;
-  }
 
-  const isLightTheme = parsed.theme === 'white' || parsed.theme === 'solarized-light';
+  const isLightTheme = config.theme === 'white' || config.theme === 'solarized-light';
   const blueprintTheme = isLightTheme ? 'bp4-light' : 'bp4-dark';
 
   return (
-    <div className={`theme-${parsed.theme}`} style={{ width: '100vw', height: '100vh', background: 'var(--bg)' }}>
+    <div className={`theme-${config.theme}`} style={{ width: '100vw', height: '100vh', background: 'var(--bg)' }}>
       <Mosaic
         className={blueprintTheme}
         renderTile={(id, path) => (
@@ -43,7 +30,7 @@ export default function WindowManager() {
             {VIEW_MAP[id] || <div>{t('NULL_VIEW')}</div>}
           </MosaicWindow>
         )}
-        value={parsed.layout}
+        value={config.layout}
         onChange={() => {}} 
       />
     </div>

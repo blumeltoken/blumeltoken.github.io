@@ -2,17 +2,16 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { isAddress, getAddress } from 'viem'; // Checksum utilities
-import { ConfigContext } from '../../App';
-import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../../core/mappings';
+import { ConfigContext } from '../App';
+import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../core/mappings';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
+import i18n from '../i18n';
 
 import FunctionInfo from './CommandCenter/FunctionInfo';
 import BoxWrapper from './CommandCenter/BoxWrapper';
 
 export default function CommandCenter() {
-  const { configText, setConfigText } = useContext(ConfigContext);
-  const config = JSON.parse(configText);
+  const { config, setConfig } = useContext(ConfigContext);
   const { t } = useTranslation();
   
   const { address, isConnected } = useAccount();
@@ -37,7 +36,7 @@ export default function CommandCenter() {
     }
   }, [chainId, config.advancedMode, activeTab]);
 
-  const updateGlobalConfig = (k, v) => setConfigText(JSON.stringify({ ...config, [k]: v }, null, 2));
+  const updateGlobalConfig = (k, v) => setConfig({ ...config, [k]: v });
 
   const loadPreselected = (key) => {
     setActiveTab(key);
