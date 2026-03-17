@@ -23,11 +23,8 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Configure Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        env:
+          VITE_INFURA_ID: ${{ secrets.VITE_INFURA_ID }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

@@ -9,7 +9,7 @@ const infuraId = import.meta.env.VITE_INFURA_ID;
 export const config = createConfig({
   chains: [mainnet, sepolia, arbitrum, arbitrumSepolia],
   transports: {
-    [mainnet.id]: http(infuraId ? `https://mainnet.infura.io/v3/${infuraId}` : 'https://cloudflare-eth.com'), 
+    [mainnet.id]: http(infuraId ? `https://mainnet.infura.io/v3/${infuraId}` : 'https://rpc.ankr.com/eth'), 
     [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),
     [sepolia.id]: http(infuraId ? `https://sepolia.infura.io/v3/${infuraId}` : 'https://rpc.sepolia.org'),
     [arbitrumSepolia.id]: http('https://sepolia-rollup.arbitrum.io/rpc'),
