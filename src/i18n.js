@@ -16,8 +16,14 @@ i18n
         translation: {
           "app_title": "Blümel Token Control Center",
           // WindowManager
+          "commands": "Command Center",
+          "notes": "Notes",
           "JSON_PARSE_ERROR": "JSON Parse Error",
           "NULL_VIEW": "Null View",
+
+          // NotesView
+          "notes.todo": "todo.md",
+          "notes.readme": "readme.md",
 
           // ConfigView
           "APPLY_CHANGES": "[ APPLY CHANGES ]",
@@ -53,8 +59,14 @@ i18n
         translation: {
           "app_title": "Blümel Token Schaltzentrale",
           // WindowManager
+          "commands": "Schaltzentrale",
+          "notes": "Notizen",
           "JSON_PARSE_ERROR": "JSON-Parse-Fehler",
           "NULL_VIEW": "Leere Ansicht",
+
+          // NotesView
+          "notes.todo": "todo.md",
+          "notes.readme": "readme.md",
 
           // ConfigView
           "APPLY_CHANGES": "[ ÄNDERUNGEN ÜBERNEHMEN ]",

@@ -13,6 +13,10 @@
   --code-bg: #003000;
   --inline-code-bg: #005000;
   --title-bg: #111;
+  --input-border-color: var(--border);
+  --input-text-color: var(--fg);
+  --info-text-color: var(--border);
+  --info-border-color: var(--bg);
 }
 
 /* White Theme */
@@ -23,6 +27,10 @@
   --code-bg: #f0f0f0;
   --inline-code-bg: #ddd;
   --title-bg: #eee;
+  --input-border-color: var(--border);
+  --input-text-color: var(--fg);
+  --info-text-color: #888;
+  --info-border-color: #eee;
 }
 
 /* Solarized Light Theme */
@@ -33,6 +41,10 @@
   --code-bg: #eee8d5;
   --inline-code-bg: #eee8d5;
   --title-bg: #fdf6e3;
+  --input-border-color: var(--border);
+  --input-text-color: var(--fg);
+  --info-text-color: #839496;
+  --info-border-color: var(--code-bg);
 }
 
 /* Solarized Dark Theme */
@@ -43,6 +55,10 @@
   --code-bg: #073642;
   --inline-code-bg: #073642;
   --title-bg: #002b36;
+  --input-border-color: var(--border);
+  --input-text-color: var(--fg);
+  --info-text-color: var(--border);
+  --info-border-color: var(--code-bg);
 }
 
 /* New Dracula Theme */
@@ -53,6 +69,10 @@
     --code-bg: #44475a;
     --inline-code-bg: #44475a;
     --title-bg: #282a36;
+    --input-border-color: var(--border);
+    --input-text-color: var(--fg);
+    --info-text-color: #6272a4;
+    --info-border-color: #20222b;
 }
 
 

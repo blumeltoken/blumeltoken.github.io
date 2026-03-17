@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useWriteContract, useBalance, useReadContract } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { isAddress, getAddress } from 'viem'; // Checksum utilities
+import { isAddress, getAddress, formatUnits } from 'viem';
 import { ConfigContext } from '../App';
 import { CONTRACT_MAPPINGS, BLOCK_EXPLORERS } from '../core/mappings';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-
-import FunctionInfo from './CommandCenter/FunctionInfo';
 import BoxWrapper from './CommandCenter/BoxWrapper';
+import AddressDisplay from '../components/AddressDisplay';
 
 export default function CommandCenter() {
   const { config, setConfig } = useContext(ConfigContext);
@@ -25,7 +24,6 @@ export default function CommandCenter() {
   const [inputs, setInputs] = useState({});
   const [abiText, setAbiText] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const mainnets = chains.filter(c => !c.testnet);
   const testnets = chains.filter(c => c.testnet);
@@ -58,52 +56,26 @@ export default function CommandCenter() {
     setInputs(prev => ({ ...prev, [fName]: { ...prev[fName], [idx]: val } }));
   };
 
-  // --- VALIDATION & CHECKSUM LOGIC ---
   const validateAndParse = (type, val) => {
     const raw = (val || "").toString().trim();
-    
-    // 1. Handle Arrays (address[] or uint256[])
     if (type.includes('[]')) {
       if (raw === "") return { ok: true, data: [], count: 0 };
-      
-      const arrayData = raw.replace(/[\[\]\"\'\']/g, '')
-                             .split(',')
-                             .map(s => s.trim())
-                             .filter(s => s !== '');
-      
+      const arrayData = raw.replace(/[\[\]\"\'\']/g, '').split(',').map(s => s.trim()).filter(s => s !== '');
       const isAddrArray = type.includes('address');
-      
-      // isAddress() checks both format and checksum if applicable
-      const isValid = arrayData.every(item => 
-        isAddrArray ? isAddress(item) : /^(0x[a-fA-F0-9]+|[0-9]+)$/.test(item)
-      );
-
-      // Convert to checksummed versions if valid
+      const isValid = arrayData.every(item => isAddrArray ? isAddress(item) : /^(0x[a-fA-F0-9]+|[0-9]+)$/.test(item));
       const processedData = isValid && isAddrArray ? arrayData.map(a => getAddress(a)) : arrayData;
-      
-      return { 
-        ok: isValid, 
-        data: processedData, 
-        count: arrayData.length,
-        err: !isValid ? (isAddrArray ? t("CHECKSUM_ERR") : t("NUM_ERR")) : null 
-      };
+      return { ok: isValid, data: processedData, count: arrayData.length, err: !isValid ? (isAddrArray ? t("CHECKSUM_ERR") : t("NUM_ERR")) : null };
     }
-
     if (raw === "") return { ok: false, data: null };
-
-    // 2. Handle Single uint
     if (type.includes('uint')) {
       const isHex = raw.startsWith('0x');
       const isValid = isHex ? /^0x[a-fA-F0-9]+$/.test(raw) : /^[0-9]+$/.test(raw);
       return { ok: isValid, data: raw, err: !isValid ? t("NOT_UINT") : null };
     }
-
-    // 3. Handle Single Address
     if (type === 'address') {
       const isValid = isAddress(raw);
       return { ok: isValid, data: isValid ? getAddress(raw) : raw, err: !isValid ? t("CHECKSUM_ERR") : null };
     }
-
     return { ok: true, data: raw };
   };
 
@@ -119,9 +91,10 @@ export default function CommandCenter() {
   const blockExplorerUrl = BLOCK_EXPLORERS[chainId];
   const tokenAddress = CONTRACT_MAPPINGS.token[chainId];
 
+  // RENDER
   return (
     <div style={containerStyle}>
-      <BoxWrapper title={t('Settings')}>
+        <BoxWrapper title={t('Settings')}>
         <div style={{ display: 'flex', gap: '5px' }}>
           <select value={config.theme} onChange={(e) => updateGlobalConfig('theme', e.target.value)} style={dropdownStyle}>
             {['matrix', 'dracula', 'solarized-dark', 'solarized-light', 'white'].map(t => <option key={t} value={t}>THEME: {t.toUpperCase()}</option>)}
@@ -141,14 +114,16 @@ export default function CommandCenter() {
           - <a href="https://discord.gg/C4UJjv58ya" target="_blank" style={linkStyle}>https://discord.gg/C4UJjv58ya (DISCORD_SRV)</a><br/>
           - <a href="https://blumeltoken.github.io/legacy/" target="_blank" style={linkStyle}>https://blumeltoken.github.io/legacy/ (blümel.finance legacy version)</a><br/>
 	        {blockExplorerUrl && tokenAddress && (
-	          <span>- <a href={`${blockExplorerUrl}/address/${tokenAddress}`} target="_blank" style={linkStyle}>{`${blockExplorerUrl}/address/${tokenAddress}`}(TOKEN)</a><br/></span>
+	          <span>- <a href={`${blockExplorerUrl}/token/${tokenAddress}`} target="_blank" style={linkStyle}>{`${blockExplorerUrl}/token/${tokenAddress}`} (TOKEN)</a><br/></span>
 	        )}
         </div>
       </BoxWrapper>
 
       <BoxWrapper title={t('Wallet')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '10px', color: 'var(--fg)' }}>{isConnected ? `${address.slice(0,6)}...${address.slice(-4)}` : t('Disconnected')}</span>
+        <div style={{ fontSize: '10px', color: 'var(--fg)', flex: 1, minWidth: 0 }}>
+            {isConnected ? <AddressDisplay address={address} blockExplorerUrl={blockExplorerUrl} /> : t('Disconnected')}
+        </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <select onChange={(e) => switchChain({ chainId: Number(e.target.value) })} value={chainId} style={dropdownStyle}>
               <optgroup label={t('Production')}>
@@ -192,75 +167,117 @@ export default function CommandCenter() {
       )}
 
       <div style={{ padding: '0 5px' }}>
-        {activeFunctions.map((f, i) => {
-          const rowValid = isRowValid(f);
-          return (
-            <div key={`${f.name}-${i}-${chainId}`} style={funcRowStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                <div style={{ flexGrow: 1, paddingTop: '4px' }}>
-                  <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{f.name.toUpperCase()}</span>
-                  {f.target && f.target.startsWith('0x') && (
-                    <div style={{ fontSize: '9px', color: '#888', marginTop: '4px', wordBreak: 'break-all' }}>
-                      <a href={`${blockExplorerUrl}/address/${f.target}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
-                        {f.target}
-                      </a>
-                      {f.abi.name && <span style={{ marginLeft: '8px' }}>({f.abi.name})</span>}
-                    </div>
-                  )}
-                </div>
-                
-                {f.abi?.inputs?.length === 1 && (
-                  <div style={{ flexShrink: 0, width: '120px', position: 'relative' }}>
-                    <input 
-                      style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid var(--border)' : '1px solid #f00', width: '100%' }} 
-                      value={inputs[f.name]?.[0] || ''} 
-                      onChange={(e) => handleInputChange(f.name, 0, e.target.value)} 
-                    />
-                    {!rowValid && inputs[f.name]?.[0] && <span style={errorTextStyle}>{validateAndParse(f.abi.inputs[0].type, inputs[f.name][0]).err}</span>}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <button 
-                    disabled={!rowValid}
-                    onClick={() => writeContract({ address: f.target, abi: [f.abi], functionName: f.abi.name, args: prepareArgs(f) })} 
-                    style={{...btnStyle, opacity: rowValid ? 1 : 0.4}}
-                  >{t('Run')}</button>
-                  {f.info && <button onClick={() => setRefreshTrigger(prev => prev + 1)} style={refreshBtnStyle}>{t('Refresh')}</button>}
-                </div>
-              </div>
-              
-              <FunctionInfo fObj={f} userAddress={address} refreshTrigger={refreshTrigger} />
-
-              {f.abi?.inputs?.length > 1 && f.abi.inputs.map((input, idx) => {
-                const check = validateAndParse(input.type, inputs[f.name]?.[idx]);
-                const hasInput = inputs[f.name]?.[idx] !== undefined && inputs[f.name]?.[idx] !== "";
-                return (
-                  <div key={idx} style={{ display: 'flex', marginTop: '8px', alignItems: 'center', position: 'relative' }}>
-                    <span style={{ color: '#555', fontSize: '9px', width: '95px' }}>
-                      {input.name}{check.count !== undefined ? ` [${check.count}]` : ''}:
-                    </span>
-                    <input 
-                      style={{...paramInputStyle, borderBottom: (!hasInput || check.ok) ? '1px solid var(--border)' : '1px solid #f00'}} 
-                      value={inputs[f.name]?.[idx] || ''} 
-                      onChange={(e) => handleInputChange(f.name, idx, e.target.value)} 
-                      placeholder={input.type} 
-                    />
-                    {!check.ok && hasInput && <span style={errorTextStyle}>{check.err}</span>}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {activeFunctions.map((f, i) => <FunctionRow f={f} i={i} key={`${f.name}-${i}-${chainId}`} />)}
       </div>
     </div>
   );
+
+  function FunctionRow({ f, i }) {
+    const { cooldown = 0, divisor = 1n, type } = f.info || {};
+    const isFaucet = type === 'faucet';
+
+    const { data: lastClaimTime } = useReadContract({
+        address: f.target,
+        abi: [{ name: 'last', type: 'function', stateMutability: 'view', inputs: [{type: 'address'}], outputs: [{type: 'uint256'}] }],
+        functionName: 'last',
+        args: [address],
+        query: {
+            enabled: isFaucet && cooldown > 0 && !!address && f.target.startsWith('0x'),
+            refetchInterval: 5000,
+        }
+    });
+
+    const { data: bal } = useBalance({
+        address: address,
+        token: f.target,
+        query: { enabled: isFaucet && !!address && f.target.startsWith('0x') }
+    });
+
+    const getStatus = () => {
+        if (!isFaucet || !cooldown || cooldown === 0 || !lastClaimTime || lastClaimTime === 0n) {
+            return { isWaiting: false, text: null };
+        }
+        const remaining = Number(lastClaimTime) + cooldown - Math.floor(Date.now() / 1000);
+        if (remaining <= 0) {
+            return { isWaiting: false, text: null };
+        }
+        const h = Math.floor(remaining / 3600);
+        const m = Math.floor((remaining % 3600) / 60);
+        return { isWaiting: true, text: `${h}h ${m}m` };
+    };
+
+    const status = getStatus();
+    const rowValid = isRowValid(f);
+
+    return (
+        <div style={funcRowStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                <div style={{ flexGrow: 1, paddingTop: '4px' }}>
+                    <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{f.name.toUpperCase()}</span>
+                    {f.target && f.target.startsWith('0x') && (
+                        <div style={{ fontSize: '9px', color: '#888', marginTop: '4px', wordBreak: 'break-all' }}>
+                            <AddressDisplay address={f.target} blockExplorerUrl={blockExplorerUrl} />
+                            {f.abi.name && <span style={{ marginLeft: '8px' }}>({f.abi.name})</span>}
+                        </div>
+                    )}
+                </div>
+
+                {f.abi?.inputs?.length === 1 && (
+                    <div style={{ flexShrink: 0, width: '120px', position: 'relative' }}>
+                        <input 
+                            style={{ ...paramInputStyle, borderBottom: rowValid ? '1px solid var(--border)' : '1px solid #f00', width: '100%' }} 
+                            value={inputs[f.name]?.[0] || ''} 
+                            onChange={(e) => handleInputChange(f.name, 0, e.target.value)} 
+                        />
+                        {!rowValid && inputs[f.name]?.[0] && <span style={errorTextStyle}>{validateAndParse(f.abi.inputs[0].type, inputs[f.name][0]).err}</span>}
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <button 
+                        disabled={!rowValid || status.isWaiting}
+                        onClick={() => writeContract({ address: f.target, abi: [f.abi], functionName: f.abi.name, args: prepareArgs(f) })} 
+                        style={{...btnStyle, opacity: (rowValid && !status.isWaiting) ? 1 : 0.4}}
+                    >
+                        {status.isWaiting ? status.text : t('Run')}
+                    </button>
+                </div>
+            </div>
+
+            <div style={{ fontSize: '9px', color: 'var(--fg)', marginTop: '4px', opacity: 0.8 }}>
+                {isFaucet && bal && divisor > 0n && (
+                    <span>DRIP_EST: {formatUnits(bal.value / divisor, bal.decimals)} {bal.symbol}</span>
+                )}
+                {status.isWaiting && (
+                    <span> | STATUS: {status.text}</span>
+                )}
+            </div>
+
+            {f.abi?.inputs?.length > 1 && f.abi.inputs.map((input, idx) => {
+                const check = validateAndParse(input.type, inputs[f.name]?.[idx]);
+                const hasInput = inputs[f.name]?.[idx] !== undefined && inputs[f.name]?.[idx] !== "";
+                return (
+                    <div key={idx} style={{ display: 'flex', marginTop: '8px', alignItems: 'center', position: 'relative' }}>
+                        <span style={{ color: '#555', fontSize: '9px', width: '95px' }}>
+                            {input.name}{check.count !== undefined ? ` [${check.count}]` : ''}:
+                        </span>
+                        <input 
+                            style={{...paramInputStyle, borderBottom: (!hasInput || check.ok) ? '1px solid var(--border)' : '1px solid #f00'}} 
+                            value={inputs[f.name]?.[idx] || ''} 
+                            onChange={(e) => handleInputChange(f.name, idx, e.target.value)} 
+                            placeholder={input.type} 
+                        />
+                        {!check.ok && hasInput && <span style={errorTextStyle}>{check.err}</span>}
+                    </div>
+                );
+            })}
+        </div>
+    );
+  }
 }
 
 const containerStyle = { padding: '10px', background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'monospace', height: '100%', overflowY: 'auto' };
 const btnStyle = { background: 'transparent', color: 'var(--fg)', border: '1px solid var(--fg)', fontSize: '9px', cursor: 'pointer', padding: '2px 6px', outline: 'none' };
-const refreshBtnStyle = { ...btnStyle, borderColor: 'var(--border)', color: '#666' };
 const dropdownStyle = { background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '9px', outline: 'none' };
 const funcRowStyle = { borderBottom: '1px solid var(--border)', padding: '12px 0' };
 const areaStyle = { width: '100%', background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--border)', fontSize: '10px', marginTop: '5px', outline: 'none', resize: 'none', fontFamily: 'monospace' };

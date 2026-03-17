@@ -14,5 +14,10 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // This is to enable WebSocket connections for HMR in cloud IDEs
+    hmr: {
+      protocol: 'wss',
+      port: 443
+    }
   }
 })

@@ -1,56 +1,103 @@
 import React, { useState, useEffect, createContext } from 'react';
-import WindowManager from './core/WindowManager';
 import { useTranslation } from 'react-i18next';
+import WindowManager from './core/WindowManager';
+import { Web3Wrapper } from './core/Web3Provider';
 import './App.css';
 
 export const ConfigContext = createContext();
 
+function useWindowSize() {
+    const [size, setSize] = useState([window.innerWidth, window.innerHeight]);
+    useEffect(() => {
+        const handleResize = () => setSize([window.innerWidth, window.innerHeight]);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    return size;
+}
+
 export default function App() {
-  const { t, i18n } = useTranslation();
-  const [width, setWidth] = useState(window.innerWidth);
-
-  const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: light)').matches ? 'white' : 'matrix';
-
-  useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const direction = width > 1000 ? "row" : "column";
-
-  const [config, setConfig] = useState({
-    theme: getSystemTheme(),
-    advancedMode: false,
-    layout: {
-      direction: direction,
-      first: "notes",
-      second: "commands"
-    }
-  });
-
-  useEffect(() => {
-    setConfig(prev => {
-      if (prev.layout.direction !== direction) {
-        return {
-          ...prev,
-          layout: {
-            ...prev.layout,
-            direction: direction
-          }
+    const { i18n, t } = useTranslation();
+    const [config, setConfig] = useState(() => {
+        const savedConfig = localStorage.getItem('config');
+        return savedConfig ? JSON.parse(savedConfig) : {
+            theme: 'matrix',
+            layout: {
+                direction: 'row',
+                first: 'notes',
+                second: 'commands',
+                splitPercentage: 50,
+            },
+            advancedMode: false,
         };
-      }
-      return prev;
     });
-  }, [direction]);
 
-  useEffect(() => {
-    document.title = t("app_title");
-  }, [i18n.language, t]);
+    const [width] = useWindowSize();
 
-  return (
-    <ConfigContext.Provider value={{ config, setConfig }}>
-      <WindowManager />
-    </ConfigContext.Provider>
-  );
+    useEffect(() => {
+        document.title = t('app_title');
+    }, [i18n.language, t]);
+
+    useEffect(() => {
+        // One-time fix for users with the old layout config
+        if (config.layout.first === 'commands') {
+            setConfig(c => ({
+                ...c,
+                layout: { ...c.layout, first: 'notes', second: 'commands' },
+            }));
+        }
+    }, []); // Empty dependency array ensures this runs only once
+
+    useEffect(() => {
+        const isMobile = width < 768;
+        const newDirection = isMobile ? 'column' : 'row';
+        if (config.layout.direction !== newDirection) {
+            setConfig(c => ({
+                ...c,
+                layout: { ...c.layout, direction: newDirection },
+            }));
+        }
+    }, [width, config.layout.direction, setConfig]);
+
+    useEffect(() => {
+        localStorage.setItem('config', JSON.stringify(config));
+    }, [config]);
+
+    const [todotxt, setTodotxt] = useState('');
+    const [readmetxt, setReadmetxt] = useState('');
+
+    const fetchFiles = (lang) => {
+        const fetchPromises = [
+            fetch(`/todo.${lang}.md`).then(res => res.ok ? res.text() : ''),
+            fetch(`/readme.${lang}.md`).then(res => res.ok ? res.text() : ''),
+            fetch(`/todo.en.md`).then(res => res.text()), // Fallback to English
+            fetch(`/readme.en.md`).then(res => res.text()), // Fallback to English
+        ];
+
+        Promise.all(fetchPromises).then(results => {
+            setTodotxt(results[0] || results[2]);
+            setReadmetxt(results[1] || results[3]);
+        });
+    };
+
+    useEffect(() => {
+        if (i18n.isInitialized) {
+            fetchFiles(i18n.language.split('-')[0]);
+        }
+    }, [i18n.isInitialized, i18n.language]);
+
+    const contextValue = {
+        config,
+        todotxt,
+        readmetxt,
+        setConfig,
+    };
+
+    return (
+        <Web3Wrapper>
+            <ConfigContext.Provider value={contextValue}>
+                <WindowManager />
+            </ConfigContext.Provider>
+        </Web3Wrapper>
+    );
 }

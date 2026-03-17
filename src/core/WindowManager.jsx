@@ -3,15 +3,15 @@ import { Mosaic, MosaicWindow } from 'react-mosaic-component';
 import { useTranslation } from 'react-i18next';
 import { ConfigContext } from '../App';
 
-import "react-mosaic-component/react-mosaic-component.css";
-import "@blueprintjs/core/lib/css/blueprint.css";
+import 'react-mosaic-component/react-mosaic-component.css';
+import '@blueprintjs/core/lib/css/blueprint.css';
 
 import CommandCenter from '../views/CommandCenter';
 import NotesView from '../views/NotesView';
 
 const VIEW_MAP = {
-  commands: <CommandCenter />,
   notes: <NotesView />,
+  commands: <CommandCenter />,
 };
 
 export default function WindowManager() {
@@ -19,7 +19,7 @@ export default function WindowManager() {
   const { t } = useTranslation();
 
   const handleLayoutChange = (newLayout) => {
-    setConfig(prevConfig => ({
+    setConfig((prevConfig) => ({
       ...prevConfig,
       layout: newLayout,
     }));
@@ -33,12 +33,12 @@ export default function WindowManager() {
       <Mosaic
         className={blueprintTheme}
         renderTile={(id, path) => (
-          <MosaicWindow path={path} title={id.toUpperCase()} toolbarControls={[]}>
+          <MosaicWindow path={path} title={t(id)} toolbarControls={[]}>
             {VIEW_MAP[id] || <div>{t('NULL_VIEW')}</div>}
           </MosaicWindow>
         )}
         value={config.layout}
-        onChange={handleLayoutChange} 
+        onChange={handleLayoutChange}
       />
     </div>
   );

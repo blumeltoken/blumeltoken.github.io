@@ -67,9 +67,8 @@ export default function FineTuning({ nonce, setNonce, priority, setPriority, gas
       <div style={infoLine}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>DRIP_SUPPLY: {dripBal ? formatUnits(dripBal.value, dripBal.decimals) : '0'} ({remainingPercent}%)</span>
-          <button onClick={refresh} style={btnStyle}>REFRESH</button>
         </div>
-        <div style={{ marginTop: '4px', color: '#0f0' }}>
+        <div style={{ marginTop: '4px' }}>
           UNIV4_1%_PRICE: 0.00041 ETH {/* Placeholder for slot0 logic */}
         </div>
       </div>
@@ -79,8 +78,6 @@ export default function FineTuning({ nonce, setNonce, priority, setPriority, gas
 
 const oneLineStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '9px', marginBottom: '8px', gap: '5px' };
 const itemStyle = { display: 'flex', alignItems: 'center', gap: '4px' };
-const smallInput = { background: 'transparent', border: 'none', borderBottom: '1px solid #333', color: '#fff', width: '35px', fontSize: '10px', outline: 'none' };
+const smallInput = { background: 'transparent', border: 'none', borderBottom: '1px solid var(--input-border-color)', color: 'var(--input-text-color)', width: '35px', fontSize: '10px', outline: 'none' };
 const midInput = { ...smallInput, width: '55px' };
-const infoLine = { marginTop: '8px', fontSize: '9px', color: '#555', borderTop: '1px solid #111', paddingTop: '8px' };
-
-
+const infoLine = { marginTop: '8px', fontSize: '9px', color: 'var(--info-text-color)', borderTop: '1px solid var(--info-border-color)', paddingTop: '8px' };
