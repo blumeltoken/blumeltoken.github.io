@@ -15,8 +15,15 @@ const VIEW_MAP = {
 };
 
 export default function WindowManager() {
-  const { config } = useContext(ConfigContext);
+  const { config, setConfig } = useContext(ConfigContext);
   const { t } = useTranslation();
+
+  const handleLayoutChange = (newLayout) => {
+    setConfig(prevConfig => ({
+      ...prevConfig,
+      layout: newLayout,
+    }));
+  };
 
   const isLightTheme = config.theme === 'white' || config.theme === 'solarized-light';
   const blueprintTheme = isLightTheme ? 'bp4-light' : 'bp4-dark';
@@ -31,7 +38,7 @@ export default function WindowManager() {
           </MosaicWindow>
         )}
         value={config.layout}
-        onChange={() => {}} 
+        onChange={handleLayoutChange} 
       />
     </div>
   );
