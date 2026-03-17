@@ -49,6 +49,7 @@ i18n
           "Refresh": "REFRESH",
           "Claimed": "CLAIMED",
           "Already_Received": "ALREADY RECEIVED",
+          "expected_output": "EXPECTED OUTPUT",
 
           // Validation
           "CHECKSUM_ERR": "INVALID_CHECKSUM_OR_ADDRESS",
@@ -94,6 +95,7 @@ i18n
           "Refresh": "AKTUALISIEREN",
           "Claimed": "BEANSPRUCHT",
           "Already_Received": "BEREITS ERHALTEN",
+          "expected_output": "ERWARTETER ERTRAG",
 
           // Validation
           "CHECKSUM_ERR": "UNGÜLTIGE_PRÜFSUMME_ODER_ADRESSE",

@@ -8,7 +8,10 @@
  | '--'  / |     |'\  '-'(_ .'|  |   |  | |  `---.|     |'
  `------'  `-----'  `-----'   `--'   `--' `------'`-----'
 
-             ***    E R L A C H U N G     ***
+             ***    P R O T O K O L L     ***
+
+ sag der Zukunft auf https://blumeltoken.github.io Grüß Gernot
+ und tritt dem GERNODLer-Club auf https://discord.gg/C4UJjv58ya bei
 ```
 
 # Blümelcoin Roadmap: So geht es weiter
