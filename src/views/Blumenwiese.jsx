@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useAccount, useChainId, useWriteContract, useReadContract, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
+import { useAccount, useChainId, useWriteContract, useReadContract, useConnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { getAddress, formatUnits } from 'viem';
+import { formatUnits } from 'viem';
 import { ConfigContext } from '../App';
 import { CONTRACT_MAPPINGS } from '../core/mappings';
 import { KOMPLIZEN } from '../core/komplizen';
@@ -15,36 +15,37 @@ const BluemelIcon = () => (
     <img src="/apple-touch-icon.png" alt="Blümel" style={{ width: 24, height: 24, borderRadius: '50%' }} />
 );
 
+// Helper function to pick random unique items from an array
+const pickRandom = (arr, count) => {
+    if (!arr || arr.length === 0) return [];
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+};
+
 export default function Blumenwiese() {
     const { t } = useTranslation();
-    const { address, isConnected } = useAccount();
+    const { isConnected } = useAccount();
     const chainId = useChainId();
     const { data: writeContractResult, writeContract } = useWriteContract();
     const { connect } = useConnect();
-    const { disconnect } = useDisconnect();
-    const { chains, switchChain } = useSwitchChain();
     const { config } = useContext(ConfigContext);
 
     const [gruesse, setGruesse] = useState(50);
     const [komplizen, setKomplizen] = useState(0);
-    
-    const [blumelFunctionKey, setBlumelFunctionKey] = useState('blumenErnten');
-    const [blumelFunctionName, setBlumelFunctionName] = useState('claim');
+    const [functionName, setFunctionName] = useState('blumenErnten');
 
     useEffect(() => {
         if (komplizen > 0) {
-            if (gruesse > 0) {
-                setBlumelFunctionKey('halloBlumel');
-                setBlumelFunctionName('claimWithGruesse');
-            } else {
-                setBlumelFunctionKey('halloWelt');
-                setBlumelFunctionName('claimWithKomplizen');
-            }
+            setFunctionName(gruesse > 0 ? 'halloBluemel' : 'halloWelt');
         } else {
-            setBlumelFunctionKey('blumenErnten');
-            setBlumelFunctionName('claim');
+            setFunctionName('blumenErnten');
         }
     }, [gruesse, komplizen]);
+
+    const functionInfo = useMemo(() => 
+        CONTRACT_MAPPINGS.wiese.functions.find(f => f.name === functionName),
+        [functionName]
+    );
 
     const pamphletAddress = CONTRACT_MAPPINGS.pamphlet[chainId];
     const { data: zaehler, refetch } = useReadContract({
@@ -53,12 +54,6 @@ export default function Blumenwiese() {
         functionName: 'zaehler',
         query: { enabled: !!pamphletAddress, refetchInterval: 5000 }
     });
-    
-    useEffect(() => {
-        refetch();
-    }, [chainId, refetch]);
-
-    const functionInfo = CONTRACT_MAPPINGS.claim.functions.find(f => f.name === blumelFunctionName);
 
     const handleInteract = () => {
         if (!isConnected) {
@@ -67,19 +62,18 @@ export default function Blumenwiese() {
         }
 
         if (!functionInfo) {
-            console.error('Contract function details not found for the current action:', blumelFunctionName);
-            console.log('Available functions:', CONTRACT_MAPPINGS.claim.functions.map(f => f.name));
-            alert('Contract function details not found for the current action. See console for details.');
+            console.error('Wiese function details not found for action:', functionName);
+            alert('Contract function details not found. See console for details.');
             return;
         }
 
         let args = [];
-        if (blumelFunctionName === 'claimWithGruesse') {
-            args = [gruesse, KOMPLIZEN.slice(0, komplizen)];
-        } else if (blumelFunctionName === 'claimWithKomplizen') {
-            args = [KOMPLIZEN.slice(0, komplizen)];
-        } else { // claim
-            args = [gruesse];
+        if (functionName === 'halloBluemel') {
+            args = [pickRandom(KOMPLIZEN, komplizen), parseInt(gruesse, 10)];
+        } else if (functionName === 'halloWelt') {
+            args = [pickRandom(KOMPLIZEN, komplizen)];
+        } else { // blumenErnten
+            args = [parseInt(gruesse, 10)];
         }
 
         try {
@@ -99,28 +93,66 @@ export default function Blumenwiese() {
         if (!functionInfo || !zaehler) return "Loading...";
 
         try {
-            if (blumelFunctionName === 'claimWithGruesse') {
-                const bluemelAmount = functionInfo.info.calc([BigInt(gruesse), KOMPLIZEN.slice(0, komplizen)], zaehler);
-                return `${komplizen} Komplizen, ${formatUnits(bluemelAmount, 18)} Bluemel`;
-            } else if (blumelFunctionName === 'claimWithKomplizen') {
+            if (functionName === 'halloBluemel') {
+                const args = [KOMPLIZEN.slice(0, komplizen), parseInt(gruesse, 10)];
+                const bluemelAmount = functionInfo.info.calc(args, zaehler);
+                return `${komplizen} Komplizen, ${bluemelAmount} Bluemel`;
+            } else if (functionName === 'halloWelt') {
                 return `${komplizen} Komplizen`;
-            } else { // claim
-                return `${formatUnits(BigInt(gruesse) * BigInt(100), 18)} Bluemel`;
+            } else { // blumenErnten
+                const bluemelAmount = gruesse * 100;
+                return `${bluemelAmount} Bluemel`;
             }
         } catch (error) {
-            console.error("Error calculating expected output:", error);
+            console.error("Error calculating expected output:", error, functionName);
             return "Error calculating output";
         }
     };
-    
+
     const renderGruesseIcons = () => {
         const icons = [];
         const count = Math.min(gruesse, 100);
+        const baseRadius = 120;
+
         for (let i = 0; i < count; i++) {
-            const angle = (i / count) * 2 * Math.PI;
-            const x = 180 + 140 * Math.cos(angle);
-            const y = 180 + 140 * Math.sin(angle);
-            icons.push(<div key={`g-${i}`} style={{...styles.attachedIcon, top: y, left: x, animation: 'rotate-clockwise 30s linear infinite'}}><BluemelIcon /></div>);
+            const radius = baseRadius * (1 + (Math.random() - 0.5) * 0.1);
+            const direction = Math.random() < 0.5 ? 1 : -1;
+            const duration = 30;
+            const startOffset = i / count;
+            const delay = -startOffset * duration;
+
+            const animationDirection = direction === 1 ? 'normal' : 'reverse';
+            
+            const armStyle = {
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: 0,
+                height: 0,
+                animation: `orbit ${duration}s linear ${delay}s infinite`,
+                animationDirection: animationDirection,
+            };
+
+            const offsetterStyle = {
+                transform: `translateX(${radius}px)`,
+            };
+
+            const iconHolderStyle = {
+                animation: `counter-orbit ${duration}s linear ${delay}s infinite`,
+                animationDirection: animationDirection,
+            };
+
+            icons.push(
+                <div key={`g-${i}`} style={armStyle}>
+                    <div style={offsetterStyle}>
+                        <div style={iconHolderStyle}>
+                            <div style={{ transform: 'translate(-50%, -50%)' }}>
+                                <BluemelIcon />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
         return icons;
     };
@@ -128,25 +160,78 @@ export default function Blumenwiese() {
     const renderKomplizenIcons = () => {
         const icons = [];
         const count = Math.min(komplizen, 100);
+        const baseRadius = 150;
+
         for (let i = 0; i < count; i++) {
-            const angle = (i / count) * 2 * Math.PI;
-            const x = 180 + 170 * Math.cos(angle);
-            const y = 180 + 170 * Math.sin(angle);
-            icons.push(<div key={`k-${i}`} style={{...styles.attachedIcon, top: y, left: x, animation: 'rotate-counter-clockwise 30s linear infinite'}}><SmallBluemelIcon /></div>);
+            const radius = baseRadius * (1 + (Math.random() - 0.5) * 0.1);
+            const direction = Math.random() < 0.5 ? 1 : -1;
+            const duration = 30 * (1 + (Math.random() - 0.5) * 0.4);
+            const startOffset = i / count;
+            const delay = -startOffset * duration;
+
+            const animationDirection = direction === 1 ? 'normal' : 'reverse';
+            
+            const armStyle = {
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: 0,
+                height: 0,
+                animation: `orbit ${duration}s linear ${delay}s infinite`,
+                animationDirection: animationDirection,
+            };
+
+            const offsetterStyle = {
+                transform: `translateX(${radius}px)`,
+            };
+
+            const iconHolderStyle = {
+                animation: `counter-orbit ${duration}s linear ${delay}s infinite`,
+                animationDirection: animationDirection,
+            };
+
+            icons.push(
+                <div key={`k-${i}`} style={armStyle}>
+                    <div style={offsetterStyle}>
+                        <div style={iconHolderStyle}>
+                            <div style={{ transform: 'translate(-50%, -50%)' }}>
+                                <SmallBluemelIcon />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
         return icons;
     };
 
     return (
         <div style={styles.container} className={`theme-${config.theme}`}>
+            <style>
+                {`
+                    @keyframes pulsate {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                        100% { transform: scale(1); }
+                    }
+                    @keyframes orbit {
+                        from { transform: rotate(0deg); }
+                        to   { transform: rotate(360deg); }
+                    }
+                    @keyframes counter-orbit {
+                        from { transform: rotate(0deg); }
+                        to   { transform: rotate(-360deg); }
+                    }
+                `}
+            </style>
             <h2 style={styles.title}>{getExpectedOutput()}</h2>
             <div style={styles.centerpiece}>
-                <img src="/android-chrome-512x512.png" alt="Blümel" style={styles.mainBlumel} />
+                <img src="/android-chrome-512x512.png" alt="Blümel" style={styles.mainBluemel} />
                 {renderGruesseIcons()}
                 {renderKomplizenIcons()}
             </div>
             <button onClick={handleInteract} style={styles.button}>
-                {isConnected ? t(blumelFunctionKey) : t('Connect')}
+                {isConnected ? t(functionName) : t('Connect')}
             </button>
 
             <div style={styles.sliders}>
@@ -189,11 +274,11 @@ const styles = {
         justifyContent: 'center',
         marginBottom: '20px',
     },
-    mainBlumel: {
+    mainBluemel: {
         width: '200px',
         height: '200px',
-        transition: 'transform 0.2s',
         borderRadius: '50%',
+        animation: 'pulsate 1.5s ease-in-out infinite',
     },
     button: {
         padding: '12px 24px',
@@ -217,17 +302,5 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '10px',
-    },
-    attachedIcon: {
-        position: 'absolute',
-        transform: 'translate(-50%, -50%)',
-    },
-    '@keyframes rotate-clockwise': {
-        from: { transform: 'translate(-50%, -50%) rotate(0deg)' },
-        to: { transform: 'translate(-50%, -50%) rotate(360deg)' },
-    },
-    '@keyframes rotate-counter-clockwise': {
-        from: { transform: 'translate(-50%, -50%) rotate(0deg)' },
-        to: { transform: 'translate(-50%, -50%) rotate(-360deg)' },
     },
 };

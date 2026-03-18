@@ -27,9 +27,9 @@ i18n
           "blumenwiese": "Blumenwiese",
 
           // Blumenwiese
-          "blumenErnten": "Harvest Flowers",
+          "blumenErnten": "Harvest Bluemel",
           "halloWelt": "Hello World",
-          "halloBlumel": "Hello Bluemel",
+          "halloBluemel": "Hello Bluemel",
 
           // ConfigView
           "APPLY_CHANGES": "[ APPLY CHANGES ]",
@@ -79,9 +79,9 @@ i18n
           "blumenwiese": "Blumenwiese",
 
           // Blumenwiese
-          "blumenErnten": "Blumen Ernten",
+          "blumenErnten": "Bluemel Ernten",
           "halloWelt": "Hallo Welt",
-          "halloBlumel": "Hallo Blümel",
+          "halloBluemel": "Hallo Blümel",
 
           // ConfigView
           "APPLY_CHANGES": "[ ÄNDERUNGEN ÜBERNEHMEN ]",

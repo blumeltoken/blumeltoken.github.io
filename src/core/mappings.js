@@ -187,5 +187,57 @@ export const CONTRACT_MAPPINGS = {
         targets: { 1: "0xf6948FfdbF793b614becCe1EaaB929ea52EdD4B7", 42161: "0xff46eEd503b3DD4BD784ef167D6CB4823aec962D", 11155111: "0xF1BefaaEbE343c2751AD6b911C570e9404F5Bd15", 421614: "0xF1BefaaEbE343c2751AD6b911C570e9404F5Bd15" },
       },
     ]
-  }
+  },
+  wiese: {
+    name: "BLUMEN_WIESE",
+    functions: [
+      {
+        name: "halloBluemel",
+        abi: { name: "halloBluemel", type: "function", stateMutability: "nonpayable", inputs: [{ name: "komplizen", type: "address[]" }, { name: "anzahl", type: "uint256" }] },
+        targets: { 1: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 42161: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 11155111: "0xbcc1d323229c026d7689d0013a7080e3c68eb750", 421614: "0xbcc1d323229c026d7689d0013a7080e3c68eb750" },
+        info: {
+          type: 'expected_output',
+          noFormat: true,
+          calc: (i, z) => {
+            if (!i || !i[0] || !i[1] || !z) return 0n;
+            const anzahl = BigInt(i[1]);
+            const x = BigInt(z[6]);
+            if (!x || x === 0n) return 100n * anzahl;
+            const bonus = anzahl / x;
+            const f = bonus;
+            const w = f / 2n;
+            const v = w / 2n;
+            const lg = z[5];
+            if (i[0].length >= (Number(lg) + 5) * 4) return 100n * (anzahl + f + w + v);
+            if (i[0].length >= (Number(lg) + 5) * 2) return 100n * (anzahl + w + v);
+            if (i[0].length >= (Number(lg) + 5)) return 100n * (anzahl + v);
+            return 100n * anzahl;
+          },
+          presets: {
+            volk: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? Number(z[5]) + 5 : 5) }),
+            waehler: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? 2 * (Number(z[5]) + 5) : 10) }),
+            familie: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? 4 * (Number(z[5]) + 5) : 20) }),
+          }
+        }
+      },
+      {
+        name: "halloWelt",
+        abi: { name: "halloWelt", type: "function", stateMutability: "nonpayable", inputs: [{ name: "komplizen", type: "address[]" }] },
+        targets: { 1: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 42161: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 11155111: "0xbcc1d323229c026d7689d0013a7080e3c68eb750", 421614: "0xbcc1d323229c026d7689d0013a7080e3c68eb750" },
+        info: {
+          presets: {
+            volk: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? Number(z[4]) + 5 : 5) }),
+            waehler: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? 2 * (Number(z[4]) + 5) : 10) }),
+            familie: (z) => ({ 0: pickRandom(KOMPLIZEN, z ? 4 * (Number(z[4]) + 5) : 20) }),
+          }
+        }
+      },
+      { 
+        name: "blumenErnten", 
+        abi: { name: "blumenErnten", type: "function", stateMutability: "nonpayable", inputs: [{ name: "anzahl", type: "uint256" }] },
+        targets: { 1: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 42161: "0xf7326d07c698a50d5351f024bc1499eb335ce167", 11155111: "0xbcc1d323229c026d7689d0013a7080e3c68eb750", 421614: "0xbcc1d323229c026d7689d0013a7080e3c68eb750" },
+        info: { type: 'expected_output', calc: (i, z) => BigInt(i[0] || 0) * 100n, noFormat: true },
+      },
+    ]
+  },
 };

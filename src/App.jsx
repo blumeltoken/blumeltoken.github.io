@@ -35,7 +35,7 @@ export default function App() {
     });
 
     const [width] = useWindowSize();
-    const [blumenwieseVisible, setBlumenwieseVisible] = useState(false);
+    const [blumenwieseVisible, setBlumenwieseVisible] = useState(true);
 
     useEffect(() => {
         document.title = t('app_title');
