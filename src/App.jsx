@@ -23,7 +23,7 @@ export default function App() {
     const [config, setConfig] = useState(() => {
         const savedConfig = localStorage.getItem('config');
         return savedConfig ? JSON.parse(savedConfig) : {
-            theme: 'matrix',
+            theme: 'solarized-light',
             layout: {
                 direction: 'row',
                 first: 'notes',
