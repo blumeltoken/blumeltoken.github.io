@@ -46,7 +46,7 @@ export default function Blumenwiese() {
   const { connect } = useConnect();
   const { config } = useContext(ConfigContext);
 
-  const [gruesse, setGruesse] = useState(50);
+  const [gruesse, setGruesse] = useState(1);
   const [komplizen, setKomplizen] = useState(0);
   const [functionName, setFunctionName] = useState('blumenErnten');
   
