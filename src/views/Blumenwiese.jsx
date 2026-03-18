@@ -7,7 +7,6 @@ import { CONTRACT_MAPPINGS } from '../core/mappings';
 import { KOMPLIZEN } from '../core/komplizen';
 import { useTranslation } from 'react-i18next';
 
-// Optimization: Added decoding="async" to push image processing off the main thread
 const SmallBluemelIcon = () => (
   <img src="/favicon-32x32.png" alt="Small Bluemel" decoding="async" style={{ width: 16, height: 16, borderRadius: '50%', display: 'block' }} /> 
 );
@@ -22,14 +21,14 @@ const pickRandom = (arr, count) => {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 };
 
-// Generates unique organic orbital data once
-const generateConfigs = (count, minRadius, maxRadius, minDuration, maxDuration) => {
+const generateConfigs = (count, minRx, maxRx, maxRy, minDuration, maxDuration) => {
   const configs = [];
   const actualCount = Math.max(count, 0); 
   
   for (let i = 0; i < actualCount; i++) {
-    const rx = minRadius + Math.random() * (maxRadius - minRadius);
-    const ry = rx * (0.3 + Math.random() * 0.5); 
+    const rx = minRx + Math.random() * (maxRx - minRx);
+    const idealRy = rx * (0.3 + Math.random() * 0.5); 
+    const ry = Math.min(idealRy, maxRy); 
     const tilt = (Math.random() - 0.5) * 60; 
     const duration = minDuration + Math.random() * (maxDuration - minDuration);
     const delay = -Math.random() * duration; 
@@ -51,23 +50,27 @@ export default function Blumenwiese() {
   const [komplizen, setKomplizen] = useState(0);
   const [functionName, setFunctionName] = useState('blumenErnten');
   
-  // Performance Monitor State
   const [isPerformanceMode, setIsPerformanceMode] = useState(true);
   const [compressionRatio, setCompressionRatio] = useState(1);
 
-  // Optimization: useDeferredValue keeps the UI snappy by letting the React render
-  // trail slightly behind the raw slider input state.
   const deferredGruesse = useDeferredValue(gruesse);
   const deferredKomplizen = useDeferredValue(komplizen);
 
-  // 1. Generate STATIC master pools of max possible configurations ONCE.
+  const [initialWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1000);
+
   const MAX_GRUESSE = 200; 
   const MAX_KOMPLIZEN = KOMPLIZEN?.length || 100;
 
-  const masterGruesseConfigs = useMemo(() => generateConfigs(MAX_GRUESSE, 110, 150, 20, 45), []);
-  const masterKomplizenConfigs = useMemo(() => generateConfigs(MAX_KOMPLIZEN, 160, 200, 25, 50), []);
+  const masterGruesseConfigs = useMemo(() => {
+    const maxRx = Math.max(130, Math.min(initialWidth * 0.3, 200));
+    return generateConfigs(MAX_GRUESSE, 90, maxRx, 110, 20, 45);
+  }, [initialWidth]);
 
-  // Monitor FPS and adjust compression if lagging
+  const masterKomplizenConfigs = useMemo(() => {
+    const maxRx = Math.max(170, Math.min(initialWidth * 0.45, 300));
+    return generateConfigs(MAX_KOMPLIZEN, 130, maxRx, 150, 25, 50);
+  }, [initialWidth]);
+
   useEffect(() => {
     if (!isPerformanceMode) {
       setCompressionRatio(1);
@@ -82,10 +85,8 @@ export default function Blumenwiese() {
       frameCount++;
       const delta = currentTime - lastTime;
       
-      // Check average FPS every 1000ms
       if (delta >= 1000) { 
         const fps = (frameCount * 1000) / delta;
-        
         if (fps < 45) {
           setCompressionRatio(prev => Math.min(prev + 1, 10));
         } else if (fps > 58 && compressionRatio > 1) {
@@ -93,7 +94,6 @@ export default function Blumenwiese() {
              setCompressionRatio(prev => Math.max(prev - 1, 1));
           }
         }
-        
         frameCount = 0;
         lastTime = currentTime;
       }
@@ -104,7 +104,6 @@ export default function Blumenwiese() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [compressionRatio, isPerformanceMode]);
 
-  // Calculate actual visible counts based on dynamic compression ratio and deferred values
   const visibleGruesse = Math.ceil(deferredGruesse / compressionRatio);
   const visibleKomplizen = Math.ceil(deferredKomplizen / compressionRatio);
 
@@ -141,8 +140,6 @@ export default function Blumenwiese() {
       return;
     }
 
-    // We use the immediate state (gruesse, komplizen) for the contract call, 
-    // not the deferred visual state, ensuring exact numbers are sent.
     let args = [];
     if (functionName === 'halloBluemel') {
       args = [pickRandom(KOMPLIZEN, komplizen), parseInt(gruesse, 10)];
@@ -185,7 +182,6 @@ export default function Blumenwiese() {
     }
   };
 
-  // 2. Render from the sliced master pool. All items now orbit in the same direction.
   const renderOrbitIcons = (configs, IconComponent) => {
     return configs.map((config, i) => {
       const planeStyle = {
@@ -199,7 +195,7 @@ export default function Blumenwiese() {
         offsetPath: `path('M 0,${-config.ry} A ${config.rx},${config.ry} 0 1,1 0,${config.ry} A ${config.rx},${config.ry} 0 1,1 0,${-config.ry}')`,
         offsetRotate: '0deg', 
         animation: `move-along-path ${config.duration}s linear ${config.delay}s infinite`,
-        willChange: 'offset-distance', // Optimization: GPU hinting
+        willChange: 'offset-distance', 
       };
 
       const scalerStyle = {
@@ -210,7 +206,7 @@ export default function Blumenwiese() {
       const iconWrapperStyle = {
         transform: `translate(-50%, -50%) rotate(${-config.tilt}deg)`,
         position: 'absolute',
-        willChange: 'transform', // Optimization: GPU hinting
+        willChange: 'transform', 
       };
 
       return (
@@ -228,17 +224,35 @@ export default function Blumenwiese() {
   };
 
   return (
-    <div style={styles.container} className={`theme-${config.theme}`}>
+    <div style={styles.container} className={`theme-${config.theme} custom-scrollbar`}>
       <style>
         {`
-          /* Subtle 1% scale over 5 seconds */
+          /* Theme-aware scrollbar styling */
+          .custom-scrollbar {
+            scrollbar-color: var(--border) var(--bg); /* Firefox */
+            scrollbar-width: thin;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--bg);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--fg);
+          }
+
+          /* Animations */
           @keyframes pulsate {
             0% { transform: translate(-50%, -50%) scale(1); }
             50% { transform: translate(-50%, -50%) scale(1.02); }
             100% { transform: translate(-50%, -50%) scale(1); }
           }
-
-          /* --- STANDARD ANIMATIONS (All orbit same direction) --- */
           @keyframes move-along-path {
             0%   { offset-distance: 0%;   animation-timing-function: ease-out; } 
             25%  { offset-distance: 25%;  animation-timing-function: ease-in;  } 
@@ -255,8 +269,6 @@ export default function Blumenwiese() {
             0%, 100% { transform: scale(0.65); }
             50%      { transform: scale(1.3); }
           }
-
-          /* Interaction styling for the central Blümel button */
           .clickable-bluemel {
             cursor: pointer;
             transition: filter 0.2s ease, transform 0.1s ease;
@@ -273,7 +285,8 @@ export default function Blumenwiese() {
       </style>
       <h2 style={styles.title}>{getExpectedOutput()}</h2>
       
-      <div style={styles.centerpiece}>
+      {/* Strict fixed-height container that allows infinite horizontal stretch but clips spillover */}
+      <div style={styles.overflowTrap}>
         <img 
             src="/android-chrome-512x512.png" 
             alt="Blümel" 
@@ -290,12 +303,10 @@ export default function Blumenwiese() {
               }
             }}
         />
-        {/* Slice the master pools to prevent position jumps */}
         {renderOrbitIcons(masterGruesseConfigs.slice(0, visibleGruesse), BluemelIcon)} 
         {renderOrbitIcons(masterKomplizenConfigs.slice(0, visibleKomplizen), SmallBluemelIcon)} 
       </div>
       
-      {/* Tiny Performance Toggle */}
       <div style={styles.perfToggleContainer}>
         <input 
           type="checkbox" 
@@ -345,28 +356,39 @@ export default function Blumenwiese() {
 }
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    background: 'var(--bg)',
-    color: 'var(--fg)',
-    textAlign: 'center',
-    padding: '20px 0',
-  },
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center', /* Vertically centers the content in the empty space */
+        background: 'var(--bg)',
+        color: 'var(--fg)',
+        textAlign: 'center',
+        padding: '20px 0',
+        width: '100%',
+        flexGrow: 1, /* Tells it to expand and grab all the empty space the parent offers */
+        minHeight: '92vh', /* A safe fallback that ensures it always commands most of the screen */
+        boxSizing: 'border-box',
+        overflowY: 'auto',
+        },
   title: {
     fontSize: '1.5em',
     fontWeight: 'bold',
     minHeight: '1.5em',
     color: 'var(--fg)',
-    marginBottom: '20px',
+    marginBottom: '10px',
   },
-  centerpiece: {
+  overflowTrap: {
     position: 'relative',
-    width: '360px',
-    height: '360px',
+    width: '100%',
+    maxWidth: '100vw',
+    height: '340px',
+    overflow: 'hidden', 
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: '20px',
-    contain: 'layout paint', // Optimization: Prevents layout thrashing on the rest of the page
+    flexShrink: 0, 
   },
   perfToggleContainer: {
     display: 'flex',

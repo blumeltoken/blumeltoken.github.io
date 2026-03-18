@@ -24,7 +24,7 @@ i18n
           // NotesView
           "notes.todo": "todo.md",
           "notes.readme": "readme.md",
-          "blumenwiese": "Blumenwiese",
+          "blumenwiese": "Bluemelwiese",
 
           // Blumenwiese
           "blumenErnten": "Harvest Bluemel",
@@ -76,10 +76,10 @@ i18n
           // NotesView
           "notes.todo": "todo.md",
           "notes.readme": "readme.md",
-          "blumenwiese": "Blumenwiese",
+          "blumenwiese": "Blümelwiese",
 
           // Blumenwiese
-          "blumenErnten": "Bluemel Ernten",
+          "blumenErnten": "Blümel Ernten",
           "halloWelt": "Hallo Welt",
           "halloBluemel": "Hallo Blümel",
 
