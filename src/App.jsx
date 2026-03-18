@@ -2,6 +2,8 @@ import React, { useState, useEffect, createContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import WindowManager from './core/WindowManager';
 import { Web3Wrapper } from './core/Web3Provider';
+import NotesView from './views/NotesView';
+import Blumenwiese from './views/Blumenwiese';
 import './App.css';
 
 export const ConfigContext = createContext();
@@ -33,6 +35,7 @@ export default function App() {
     });
 
     const [width] = useWindowSize();
+    const [blumenwieseVisible, setBlumenwieseVisible] = useState(false);
 
     useEffect(() => {
         document.title = t('app_title');
@@ -91,7 +94,21 @@ export default function App() {
         todotxt,
         readmetxt,
         setConfig,
+        setBlumenwieseVisible,
     };
+
+    if (blumenwieseVisible) {
+        return (
+            <Web3Wrapper>
+                <ConfigContext.Provider value={contextValue}>
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', color: 'var(--fg)' }}>
+                        <NotesView blumenwieseVisible={blumenwieseVisible} />
+                        <Blumenwiese />
+                    </div>
+                </ConfigContext.Provider>
+            </Web3Wrapper>
+        );
+    }
 
     return (
         <Web3Wrapper>

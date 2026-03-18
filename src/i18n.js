@@ -24,6 +24,12 @@ i18n
           // NotesView
           "notes.todo": "todo.md",
           "notes.readme": "readme.md",
+          "blumenwiese": "Blumenwiese",
+
+          // Blumenwiese
+          "blumenErnten": "Harvest Flowers",
+          "halloWelt": "Hello World",
+          "halloBlumel": "Hello Bluemel",
 
           // ConfigView
           "APPLY_CHANGES": "[ APPLY CHANGES ]",
@@ -70,6 +76,12 @@ i18n
           // NotesView
           "notes.todo": "todo.md",
           "notes.readme": "readme.md",
+          "blumenwiese": "Blumenwiese",
+
+          // Blumenwiese
+          "blumenErnten": "Blumen Ernten",
+          "halloWelt": "Hallo Welt",
+          "halloBlumel": "Hallo Blümel",
 
           // ConfigView
           "APPLY_CHANGES": "[ ÄNDERUNGEN ÜBERNEHMEN ]",
